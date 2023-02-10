@@ -111,7 +111,6 @@ class seriesMetadata:
         self.tags = "[]"    # 标签
         self.alternateTitles = "[]"  # 别名
         self.ageRating = 12  # 分级
-        self.language = "zh-CN"  # 语言 https://www.ietf.org/rfc/bcp/bcp47.txt
         self.links = "[]"  # 链接
         self.totalBookCount = 1  # must be greater than 0
 

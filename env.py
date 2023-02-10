@@ -6,7 +6,6 @@ from log import logger
 
 class InitEnv:
     def __init__(self):
-        self.bgm = bangumiApi.BangumiApi(BANGUMI_ACCESS_TOKEN)
         # Initialize the komga API
         self.komga = komgaApi.KomgaApi(
             KOMGA_BASE_URL, KOMGA_EMAIL, KOMGA_EMAIL_PASSWORD)

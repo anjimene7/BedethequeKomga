@@ -1,32 +1,32 @@
 # -*- coding: utf-8 -*- #
 # ------------------------------------------------------------------
-# Description: 处理komga漫画元数据
+# Description: Handles komga bd metadata
 # ------------------------------------------------------------------
 
 
 from komgaApi import *
 
 
-def __setTags(komga_metadata, bangumi_metadata):
+def __setTags(komga_metadata, bedetheque_metadata):
     '''
     漫画标签
     '''
     taglist = []
-    for info in bangumi_metadata["tags"]:
+    for info in bedetheque_metadata["tags"]:
         if info["count"] >= 3:
             taglist.append(info["name"])
 
     komga_metadata.tags = taglist
 
 
-def __setGenres(komga_metadata, bangumi_metadata):
+def __setGenres(komga_metadata, bedetheque_metadata):
     '''
     漫画流派
     '''
     genrelist = []
     # TODO bangumi并没有将漫画划分流派，后续可以考虑从tags中提取匹配
-    genrelist.append(bangumi_metadata["platform"])
-    for info in bangumi_metadata["infobox"]:
+    genrelist.append(bedetheque_metadata["platform"])
+    for info in bedetheque_metadata["infobox"]:
         if info["key"] == "连载杂志":
             if type(info["value"]) == list:
                 for v in info["value"]:
@@ -34,12 +34,12 @@ def __setGenres(komga_metadata, bangumi_metadata):
             else:
                 genrelist.append(info["value"])
     # TODO komga无评分/评级，暂时先将分数添加到流派字段中
-    genrelist.append(str(round(bangumi_metadata["rating"]["score"]))+"分")
+    genrelist.append(str(round(bedetheque_metadata["rating"]["score"]))+"分")
 
     komga_metadata.genres = genrelist
 
 
-def __setStatus(komga_metadata, bangumi_metadata):
+def __setStatus(komga_metadata, bedetheque_metadata):
     '''
     漫画连载状态
     '''
@@ -50,7 +50,7 @@ def __setStatus(komga_metadata, bangumi_metadata):
 
     casestatus = "ONGOING"
 
-    for info in bangumi_metadata["infobox"]:
+    for info in bedetheque_metadata["infobox"]:
         if(info["key"] in runningLang):
             casestatus = "ONGOING"
         elif(info["key"] in abandonedLang):
@@ -75,40 +75,31 @@ def __setTotalBookCount(komga_metadata, subjectRelations):
     komga_metadata.totalBookCount = totalBookCount if totalBookCount != 0 else 1
 
 
-def __setLanguage(komga_metadata, manga_filename):
-    '''
-    本地漫画语言
-    '''
-    languageTypes = ["日版"]
-    for languageType in languageTypes:
-        if(languageType in manga_filename):
-            komga_metadata.language = "ja-JP"
 
-
-def __setAlternateTitles(komga_metadata, bangumi_metadata):
+def __setAlternateTitles(komga_metadata, bedetheque_metadata):
     '''
     别名
     '''
     alternateTitles = []
     title = {
         "label": "Original",
-        "title": bangumi_metadata["name"]
+        "title": bedetheque_metadata["name"]
     }
     alternateTitles.append(title)
-    if bangumi_metadata["name_cn"] != '':
+    if bedetheque_metadata["name_cn"] != '':
         title = {
             "label": "Bangumi",
-            "title": bangumi_metadata["name_cn"]
+            "title": bedetheque_metadata["name_cn"]
         }
         alternateTitles.append(title)
     komga_metadata.alternateTitles = alternateTitles
 
 
-def __setPublisher(komga_metadata, bangumi_metadata):
+def __setPublisher(komga_metadata, bedetheque_metadata):
     '''
     出版商
     '''
-    for info in bangumi_metadata["infobox"]:
+    for info in bedetheque_metadata["infobox"]:
         if info["key"] == "出版社":
             if isinstance(info["value"], (list,)):  # 判断传入值是否为列表
                 # 只取第一个出版商
@@ -121,43 +112,43 @@ def __setPublisher(komga_metadata, bangumi_metadata):
                 return
 
 
-def __setAgeRating(komga_metadata, bangumi_metadata):
+def __setAgeRating(komga_metadata, bedetheque_metadata):
     '''
     分级
     '''
-    if bangumi_metadata["nsfw"] == True:
+    if bedetheque_metadata["nsfw"] == True:
         komga_metadata.ageRating = 18
 
 
-def __setTitle(komga_metadata, bangumi_metadata):
+def __setTitle(komga_metadata, bedetheque_metadata):
     '''
     标题
     '''
     # 优先使用中文标题
-    if bangumi_metadata["name_cn"] != '':
-        komga_metadata.title = bangumi_metadata["name_cn"]
+    if bedetheque_metadata["name_cn"] != '':
+        komga_metadata.title = bedetheque_metadata["name_cn"]
     else:
-        komga_metadata.title = bangumi_metadata["name"]
+        komga_metadata.title = bedetheque_metadata["name"]
 
 
-def __setSummary(komga_metadata, bangumi_metadata):
+def __setSummary(komga_metadata, bedetheque_metadata):
     '''
     概要
     '''
-    komga_metadata.summary = bangumi_metadata["summary"]
+    komga_metadata.summary = bedetheque_metadata["summary"]
 
 
-def __setLinks(komga_metadata, bangumi_metadata, subjectRelations):
+def __setLinks(komga_metadata, bedetheque_metadata, subjectRelations):
     '''
     链接
     '''
     # TODO 可以考虑替换komga漫画系列封面图。目前默认为第一本的封面
     links = [
         {
-            "label": "Bangumi", "url": "https://bgm.tv/subject/"+str(bangumi_metadata["id"])
+            "label": "Bangumi", "url": "https://bgm.tv/subject/"+str(bedetheque_metadata["id"])
         },
         {
-            "label": "Bangumi Image", "url": bangumi_metadata["images"]["large"]
+            "label": "Bangumi Image", "url": bedetheque_metadata["images"]["large"]
         }
     ]
     for relation in subjectRelations:
@@ -172,47 +163,44 @@ def __setLinks(komga_metadata, bangumi_metadata, subjectRelations):
     komga_metadata.links = links
 
 
-def setKomangaSeriesMetadata(bangumiMetadata, mangaFileName, bgm):
+def setKomangaSeriesMetadata(bedetheque_metadata, mangaFileName, bgm):
     '''
     获取漫画系列元数据
     '''
     # init
     komangaSeriesMetadata = seriesMetadata()
 
-    subjectRelations = bgm.get_related_subjects(bangumiMetadata['id'])
+    subjectRelations = bgm.get_related_subjects(bedetheque_metadata['id'])
 
     # link
-    __setLinks(komangaSeriesMetadata, bangumiMetadata, subjectRelations)
+    __setLinks(komangaSeriesMetadata, bedetheque_metadata, subjectRelations)
 
     # summary
-    __setSummary(komangaSeriesMetadata, bangumiMetadata)
+    __setSummary(komangaSeriesMetadata, bedetheque_metadata)
 
     # status
-    __setStatus(komangaSeriesMetadata, bangumiMetadata)
+    __setStatus(komangaSeriesMetadata, bedetheque_metadata)
 
     # genres
-    __setGenres(komangaSeriesMetadata, bangumiMetadata)
+    __setGenres(komangaSeriesMetadata, bedetheque_metadata)
 
     # tags
-    __setTags(komangaSeriesMetadata, bangumiMetadata)
+    __setTags(komangaSeriesMetadata, bedetheque_metadata)
 
     # totalBookCount
     __setTotalBookCount(komangaSeriesMetadata, subjectRelations)
 
-    # language
-    __setLanguage(komangaSeriesMetadata, mangaFileName)
-
     # alternateTitles
-    __setAlternateTitles(komangaSeriesMetadata, bangumiMetadata)
+    __setAlternateTitles(komangaSeriesMetadata, bedetheque_metadata)
 
     # publisher
-    __setPublisher(komangaSeriesMetadata, bangumiMetadata)
+    __setPublisher(komangaSeriesMetadata, bedetheque_metadata)
 
     # ageRating
-    __setAgeRating(komangaSeriesMetadata, bangumiMetadata)
+    __setAgeRating(komangaSeriesMetadata, bedetheque_metadata)
 
     # title
-    __setTitle(komangaSeriesMetadata, bangumiMetadata)
+    __setTitle(komangaSeriesMetadata, bedetheque_metadata)
 
     komangaSeriesMetadata.isvalid = True
     return komangaSeriesMetadata
@@ -231,18 +219,18 @@ def setKomangaBookMetadata(subject_id, number, name, bgm):
     # title 暂不做修改
     komangaBookMetadata.title = name
 
-    bangumiMetadata = bgm.get_subject_metadata(subject_id)
+    bedetheque_metadata = bgm.get_subject_metadata(subject_id) ## TODO @Inervo
     subjectRelations = bgm.get_related_subjects(subject_id)
     # link
-    __setLinks(komangaBookMetadata, bangumiMetadata,
-               subjectRelations)
+    __setLinks(komangaBookMetadata, bedetheque_metadata,
+                subjectRelations)
     # summary
-    __setSummary(komangaBookMetadata, bangumiMetadata)
+    __setSummary(komangaBookMetadata, bedetheque_metadata)
     # tags
-    __setTags(komangaBookMetadata, bangumiMetadata)
+    __setTags(komangaBookMetadata, bedetheque_metadata)
     # authors
     authors = []
-    for info in bangumiMetadata["infobox"]:
+    for info in bedetheque_metadata["infobox"]:
         if info["key"] == "作者":
             '''
             基础格式：{'name':'值','role':'角色类型'}
@@ -264,9 +252,9 @@ def setKomangaBookMetadata(subject_id, number, name, bgm):
             authors.append(author)
     komangaBookMetadata.authors = authors
     # releaseDate
-    komangaBookMetadata.releaseDate = bangumiMetadata["date"]
+    komangaBookMetadata.releaseDate = bedetheque_metadata["date"]
     # isbn
-    for info in bangumiMetadata["infobox"]:
+    for info in bedetheque_metadata["infobox"]:
         if info["key"] == "ISBN":
             # ISBN必须是13位数
             # komangaBookMetadata.isbn = info["value"]

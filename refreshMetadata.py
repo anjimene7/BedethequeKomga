@@ -23,7 +23,7 @@ def upsert_series_record(conn, series_id, subject_id, update_success, series_nam
     c = conn.cursor()
     # 0 (false) and 1 (true)
     c.execute("INSERT OR REPLACE INTO refreshed_series (series_id,subject_id,update_success,series_name,bangumi_name,refresh_time) VALUES (?,?,?,?,?,?)",
-              (series_id, subject_id, update_success, series_name, bangumi_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
+                (series_id, subject_id, update_success, series_name, bangumi_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
     conn.commit()
 
 
@@ -31,21 +31,20 @@ def upsert_book_record(conn, book_id, subject_id, update_success, book_name):
     c = conn.cursor()
     # 0 (false) and 1 (true)
     c.execute("INSERT OR REPLACE INTO refreshed_books (book_id,subject_id,update_success,book_name,refresh_time) VALUES (?,?,?,?,?)",
-              (book_id, subject_id, update_success, book_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
+                (book_id, subject_id, update_success, book_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
     conn.commit()
 
 
 def refresh_metadata(force_refresh_list=[]):
     '''
-    刷新书籍系列元数据
+    Refresh book series metadata
     '''
     env = InitEnv()
 
-    bgm = env.bgm
     komga = env.komga
     all_series = env.all_series
 
-    # Create a connection to the sqlite database
+    # Create a connection to the sqlite database /// @Inervo: Is it necessary???
     conn = sqlite3.connect("recordsRefreshed.db")
     c = conn.cursor()
     c.execute(
@@ -67,46 +66,46 @@ def refresh_metadata(force_refresh_list=[]):
         if c.execute("SELECT * FROM refreshed_series WHERE series_id=? AND update_success=1", (series_id,)).fetchone() and not force_refresh_flag:
             subject_id = c.execute(
                 "SELECT subject_id FROM refreshed_series WHERE series_id=?", (series_id,)).fetchone()[0]
-            refresh_book_metadata(bgm, komga, subject_id,
-                                  series_id, conn, force_refresh_flag)
+            refresh_book_metadata(komga, subject_id,
+                                    series_id, conn, force_refresh_flag)
             continue
 
         # Get the subject id from the Correct Bgm Link (CBL) if it exists
         subject_id = None
         for link in series['metadata']['links']:
-            if link['label'].lower() == "cbl":
+            if link['label'].lower() == "cbl": ## TODO @Inervo: retrieve bedetheque metadata here
                 subject_id = link['url'].split("/")[-1]
                 # Get the metadata for the series from bangumi
                 metadata = bgm.get_subject_metadata(subject_id)
                 break
 
         # Use the bangumi API to search for the series by title on komga
-        if subject_id == None:
-            title = get_title(series_name)
-            if title == None:
-                logger.warning("Failed to update series " +
-                               series_name+": None")
-                upsert_series_record(conn, series_id, subject_id,
-                                     0, series_name, "None")
-                continue
-            search_results = bgm.search_subjects(title)
-            if len(search_results) > 0:
-                subject_id = search_results[0]['id']
-                metadata = search_results[0]
-            else:
-                logger.warning("Failed to update series " +
-                               series_name+": no subject in bangumi")
-                upsert_series_record(conn, series_id, subject_id,
-                                     0, series_name, "None")
-                continue
+        # if subject_id == None:
+        #     title = get_title(series_name)
+        #     if title == None:
+        #         logger.warning("Failed to update series " +
+        #                        series_name+": None")
+        #         upsert_series_record(conn, series_id, subject_id,
+        #                              0, series_name, "None")
+        #         continue
+        #     search_results = bgm.search_subjects(title)
+        #     if len(search_results) > 0:
+        #         subject_id = search_results[0]['id']
+        #         metadata = search_results[0]
+        #     else:
+        #         logger.warning("Failed to update series " +
+        #                        series_name+": no subject in bangumi")
+        #         upsert_series_record(conn, series_id, subject_id,
+        #                              0, series_name, "None")
+        #         continue
 
         komga_metadata = processMetadata.setKomangaSeriesMetadata(
-            metadata, series_name, bgm)
+            metadata, series_name)
 
         if(komga_metadata.isvalid == False):
             logger.warning("Failed to update series " + series_name)
             upsert_series_record(conn, series_id, subject_id,
-                                 0, series_name, komga_metadata.title)
+                                    0, series_name, komga_metadata.title)
             continue
 
         series_data = {
@@ -119,8 +118,7 @@ def refresh_metadata(force_refresh_list=[]):
             "alternateTitles": komga_metadata.alternateTitles,
             "ageRating": komga_metadata.ageRating,
             "links": komga_metadata.links,
-            "totalBookCount": komga_metadata.totalBookCount,
-            "language": komga_metadata.language
+            "totalBookCount": komga_metadata.totalBookCount
         }
 
         # Update the metadata for the series on komga
@@ -129,15 +127,15 @@ def refresh_metadata(force_refresh_list=[]):
             logger.info("Successfully update series " + series_name)
             # Update the refreshed series in the sqlite database
             upsert_series_record(conn, series_id, subject_id,
-                                 1, series_name, komga_metadata.title)
+                                    1, series_name, komga_metadata.title)
         else:
             logger.warning("Failed to update series " + series_name)
             upsert_series_record(conn, series_id, subject_id,
-                                 0, series_name, komga_metadata.title)
+                                    0, series_name, komga_metadata.title)
             continue
 
-        refresh_book_metadata(bgm, komga, subject_id,
-                              series_id, conn, force_refresh_flag)
+        refresh_book_metadata(komga, subject_id,
+                                series_id, conn, force_refresh_flag)
 
 
 def getNumber(s):
@@ -157,25 +155,25 @@ def getNumber(s):
     return numbers
 
 
-def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh_flag):
+def refresh_book_metadata(komga, subject_id, series_id, conn, force_refresh_flag):
     '''
-    刷新书元数据
+    Refresh Book Metadata
     '''
     if subject_id == None:
         return
-    # Get the related subjects for the series from bangumi
-    related_subjects = [subject for subject in bgm.get_related_subjects(
-        subject_id) if subject['relation'] == "单行本"]
+    # # Get the related subjects for the series from bangumi
+    # related_subjects = [subject for subject in bgm.get_related_subjects(
+    #     subject_id) if subject['relation'] == "单行本"]
 
-    # Get the number for each related subject by finding the last number in the name or name_cn field
-    subjects_numbers = []
-    for subject in related_subjects:
-        numbers = getNumber(subject['name'] + subject['name_cn'])
-        try:
-            subjects_numbers.append(
-                float(numbers[-1]) if numbers else float(1))
-        except ValueError:
-            logger.warning("Failed to extract number ")
+    # # Get the number for each related subject by finding the last number in the name or name_cn field
+    # subjects_numbers = []
+    # for subject in related_subjects:
+    #     numbers = getNumber(subject['name'] + subject['name_cn'])
+    #     try:
+    #         subjects_numbers.append(
+    #             float(numbers[-1]) if numbers else float(1))
+    #     except ValueError:
+    #         logger.warning("Failed to extract number ")
 
     # Get all books in the series on komga
     books = komga.get_series_books(series_id)
@@ -201,7 +199,7 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                 ep_flag = False
                 # Get the metadata for the book from bangumi
                 book_metadata = processMetadata.setKomangaBookMetadata(
-                    related_subjects[i]['id'], number, book_name, bgm)
+                    related_subjects[i]['id'], number, book_name)
                 if(book_metadata.isvalid == False):
                     logger.warning("Failed to update book " + book_name)
                     upsert_book_record(
@@ -232,7 +230,7 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                     upsert_book_record(
                         conn, book_id, related_subjects[i]['id'], 0, book_name)
                 break
-        # 修正`话`序号
+        # Modify the serial number of `chapter`
         if ep_flag:
             book_data = {
                 "number": book_number,
