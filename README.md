@@ -55,4 +55,4 @@ Part of the code and ideas of this project come from [chu-shen/BangumiKomga](htt
 
 Also thanks to the following excellent projects:：
 - [gotson/komga](https://github.com/gotson/komga)
-- [bangumi/api](https://github.com/bangumi/api)
+- [givka/bedetheque-scraper](https://github.com/givka/bedetheque-scraper)
