@@ -7,24 +7,24 @@ def get_proxies():
     proxies = response.text.strip().split("\r\n")
     return [{"http": "http://" + proxy} for proxy in proxies]
 
-def find_series_url(comic_series_name, proxies): ## doesn't work yet. TODO
+def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     url = None
 
+    raise Exception("Retrieve url not yet implemented") #TODO
     page = requests.get(f"https://www.bedetheque.com/search/tout", params={"RechTexte": comic_series_name, "RechWhere": "7"},
                         proxies=proxy, timeout=5)
     soup = BeautifulSoup(page.text, "html.parser")
-    print(soup)
     url = soup.find_all("div", class_="line-title search-line")
     return url
 
-def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxies = None):
+def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxy = None):
     url = None
     metadata = None
 
     if comic_url is not None:
         url = f"{comic_url}"
     elif comic_series_name is not None:
-        url = None # TODO @Inervo : retrieve URL from series name
+        raise Exception("Retrieve url from name not yet implemented") #TODO
     else:
         raise Exception("Failed to retrieve metadata url")
 
@@ -47,7 +47,7 @@ def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxie
     }
     return metadata
 
-def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_tome_number = None, proxies = None):
+def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_tome_number = None, proxy = None):
     url = None
     metadata = None
     couleurs = []
@@ -59,7 +59,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     if comic_url is not None:
         url = f"{comic_url}"
     elif comic_series_name is not None & comic_tome_number is not None:
-        url = None # TODO @Inervo : retrieve URL from series name and tome number
+        raise Exception("Retrieve url from name not yet implemented") #TODO
     else:
         raise Exception("Failed to retrieve metadata url")
 
@@ -109,9 +109,9 @@ if __name__ == "__main__":
 
     for proxy in proxies:
         try:
-            #metadata = get_comic_series_metadata(series_url, proxies = proxies)
-            #metadata=find_series_url("lanfeust", proxies) # don't work yet
-            metadata = get_comic_book_metadata(comic_url, proxies = proxies)
+            #metadata = get_comic_series_metadata(series_url, proxy = proxy)
+            metadata=find_series_url("lanfeust", proxy) # don't work yet
+            #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
             if metadata is not None:
                 break
         except:
