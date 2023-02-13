@@ -1,18 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
 
-def get_proxies():
-    url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
-    response = requests.get(url)
-    proxies = response.text.strip().split("\r\n")
-    return [{"http": "http://" + proxy} for proxy in proxies]
-
 def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     url = None
 
     raise Exception("Retrieve url not yet implemented") #TODO
     page = requests.get(f"https://www.bedetheque.com/search/tout", params={"RechTexte": comic_series_name, "RechWhere": "7"},
-                        proxies=proxy, timeout=5)
+                        proxies=proxy.getNextProxy(), timeout=5)
     soup = BeautifulSoup(page.text, "html.parser")
     url = soup.find_all("div", class_="line-title search-line")
     return url
@@ -63,7 +57,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     else:
         raise Exception("Failed to retrieve metadata url")
 
-    page = requests.get(url, proxies=proxy, timeout=5)
+    page = requests.get(url, proxies=proxy.getNextProxy(), timeout=5)
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find("a", itemprop="url")['title']
     booknumber = soup.find("span", class_="numa").parent.text.strip().split('.')[0]
@@ -117,3 +111,28 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
 #         except:
 #             raise Exception("Failed to retrieve metadata using all proxies")
 #     print(metadata)
+
+class bedethequeApi:
+    '''
+    Class to represent the proxy settings. 
+    '''
+
+    def __init__(self):
+        self.proxies = self.__get_proxies()
+        self.proxyIndex = 0
+
+    def __get_proxies():
+        url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
+        response = requests.get(url)
+        proxies = response.text.strip().split("\r\n")
+        return [{"http": "http://" + proxy} for proxy in proxies]
+
+    def getNextProxy():
+        proxy = self.proxies[self.proxyIndex]
+        self.proxyIndex += 1
+        if self.proxyIndex == len(self.proxies):
+            self.proxyIndex = 0
+        return proxy
+
+    def removeproxy(proxy):
+        self.proxies.remove(proxy)

@@ -14,7 +14,7 @@ def refresh_metadata(force_refresh_list=[]):
 
     komga = env.komga
     all_series = env.all_series
-    proxies = bedethequeApi.get_proxies()
+    proxy = bedethequeApi.bedethequeApi()
 
     # Loop through each book series
     for serie in all_series:
@@ -36,7 +36,7 @@ def refresh_metadata(force_refresh_list=[]):
         #get the metadata for the series from bedetheque
         if serie_url is None:
             break
-        bedetheque_metadata = get_comic_series_metadata(serie_url, proxy = proxy) # TODO proxy a terminer d'ajouter
+        bedetheque_metadata = get_comic_series_metadata(serie_url, proxy)
 
         # Prepare the metadata
         processedMetadata = processMetadata.prepareKomgaSeriesMetadata(
@@ -66,10 +66,10 @@ def refresh_metadata(force_refresh_list=[]):
             continue
 
         # call the refresh on the books of this serie
-        refresh_book_metadata(komga, serie_id, force_refresh_flag)
+        refresh_book_metadata(komga, serie_id, force_refresh_flag, proxy)
 
 
-def refresh_book_metadata(komga, series_id, force_refresh_flag):
+def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
     '''
     Refresh Book Metadata
     '''
@@ -95,7 +95,7 @@ def refresh_book_metadata(komga, series_id, force_refresh_flag):
         #get the metadata for the series from bedetheque
         if book_url is None:
             break
-        bedetheque_metadata = get_comic_book_metadata(book_url, proxy = proxy) # TODO proxy a terminer d'ajouter
+        bedetheque_metadata = get_comic_book_metadata(book_url, proxy)
 
         # Prepare the metadata
         processedMetadata = processMetadata.prepareKomgaBookMetadata(bedetheque_metadata, book['metadata'], book_url)
