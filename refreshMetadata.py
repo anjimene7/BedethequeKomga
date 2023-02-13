@@ -122,6 +122,6 @@ def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
             logger.info("Successfully update book " + book_name)
         else:
             logger.warning("Failed to update book " + book_name)
-        break
+            break
 
 refresh_metadata(FORCE_REFRESH_LIST)
