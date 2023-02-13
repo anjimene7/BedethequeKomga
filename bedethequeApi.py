@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import bedethequeApi
 
 def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     url = None
@@ -22,7 +23,7 @@ def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxy 
     else:
         raise Exception("Failed to retrieve metadata url")
 
-    page = requests.get(url, proxies=proxy, timeout=5)
+    page = requests.get(url, proxies=proxy.getNextProxy(), timeout=5)
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
@@ -98,41 +99,36 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
 # if __name__ == "__main__":
 #     series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
 #     comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
-#     proxies = get_proxies()
+#     proxy = bedethequeApi.bedethequeApi()
 #     metadata = None
 
-#     for proxy in proxies:
-#         try:
-#             #metadata = get_comic_series_metadata(series_url, proxy = proxy)
-#             #metadata=find_series_url("lanfeust", proxy) # don't work yet
-#             #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
-#             if metadata is not None:
-#                 break
-#         except:
-#             raise Exception("Failed to retrieve metadata using all proxies")
+
+#     metadata = get_comic_series_metadata(series_url, proxy = proxy)
+#     #metadata=find_series_url("lanfeust", proxy) # don't work yet
+#     #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
+
 #     print(metadata)
 
 class bedethequeApi:
     '''
     Class to represent the proxy settings. 
     '''
-
     def __init__(self):
         self.proxies = self.__get_proxies()
         self.proxyIndex = 0
 
-    def __get_proxies():
+    def __get_proxies(self):
         url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
         response = requests.get(url)
         proxies = response.text.strip().split("\r\n")
         return [{"http": "http://" + proxy} for proxy in proxies]
 
-    def getNextProxy():
+    def getNextProxy(self):
         proxy = self.proxies[self.proxyIndex]
         self.proxyIndex += 1
         if self.proxyIndex == len(self.proxies):
             self.proxyIndex = 0
-        return proxy
+        return proxy # TODO: test proxy before returning it. If it doesn't work, removeit and get the next one
 
-    def removeproxy(proxy):
+    def removeProxy(self, proxy):
         self.proxies.remove(proxy)
