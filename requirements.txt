@@ -1,5 +1,2 @@
 requests
-zhconv
-levenshtein
-sqlite3
 beautifulsoup4

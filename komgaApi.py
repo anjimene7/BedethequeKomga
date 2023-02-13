@@ -104,14 +104,11 @@ class seriesMetadata:
 
     def __init__(self):
         self.title = ""
-        self.status = ""  # 状态
-        self.summary = ""  # 概要
-        self.publisher = ""  # 出版商
-        self.genres = "[]"  # 流派
-        self.tags = "[]"    # 标签
-        self.alternateTitles = "[]"  # 别名
-        self.ageRating = 12  # 分级
-        self.links = "[]"  # 链接
+        self.status = ""
+        self.summary = ""
+        self.publisher = ""
+        self.genres = "[]"
+        self.links = "[]"
         self.totalBookCount = 1  # must be greater than 0
 
         self.isvalid = False
@@ -125,12 +122,10 @@ class bookMetadata:
     def __init__(self):
         self.title = ""
         self.summary = ""
-        self.number = 0  # 序号
-        self.isbn = ""
-        self.authors = "[]"  # 作者
-        self.tags = "[]"    # 标签
-        self.releaseDate = None  # 发布日期
-        self.links = "[]"  # 链接
-        self.numberSort = 0  # 短序号
+        self.number = 0
+        # self.numberSort = 0
+        self.authors = "[]"
+        # self.releaseDate = None
+        self.links = "[]"
 
         self.isvalid = False

@@ -32,15 +32,15 @@ def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxy 
     soup = BeautifulSoup(page.content, "html.parser")
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
-    nbrOfAlbums = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
-    editeur = soup.find("label", string="Editeur : ").next_sibling.text
+    totalBookCount = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
+    publisher = soup.find("label", string="Editeur : ").next_sibling.text
     genres = soup.find("div", class_="bandeau-info serie").find("span", class_="style").text.split(", ")
     summary = soup.find("div", class_="bandeau-boutons-serie").previous_sibling.previous_sibling.text
     metadata = {
         "title": title,
         "status": status,
-        "nbrOfAlbums": nbrOfAlbums,
-        "editeur": editeur,
+        "totalBookCount": totalBookCount,
+        "publisher": publisher,
         "genres": genres,
         "summary": summary,
         "url": url
@@ -71,23 +71,23 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     if soup.find("span", class_="metier", string="(Scénario)") is not None:
         scenarioUnmatchedIndex = soup.find_all("span", class_="metier", string="(Scénario)")
         for scenario in scenarioUnmatchedIndex:
-            scenarios.append(scenario.previous_sibling.previous_sibling.text.strip().split(',')) #scenario = scenarioList[1].strip() + ' ' + scenarioList[0]
+            scenarios.append(scenario.previous_sibling.previous_sibling.text.strip().split(','))
     if soup.find("span", class_="metier", string="(Dessin)") is not None:
         dessinUnmatchedIndex = soup.find_all("span", class_="metier", string="(Dessin)")
         for dessin in dessinUnmatchedIndex:
-            dessins.append(dessin.previous_sibling.previous_sibling.text.strip().split(',')) # dessin = dessinList[1].strip() + ' ' + dessinList[0]
+            dessins.append(dessin.previous_sibling.previous_sibling.text.strip().split(','))
     if soup.find("span", class_="metier", string="(Couleurs)") is not None:
         couleurUnmatchedIndex = soup.find_all("span", class_="metier", string="(Couleurs)")
         for couleur in couleurUnmatchedIndex:
-            couleurs.append(couleur.previous_sibling.previous_sibling.text.strip().split(',')) #couleurs = couleursList[1].strip() + ' ' + couleursList[0]
+            couleurs.append(couleur.previous_sibling.previous_sibling.text.strip().split(','))
     if soup.find("span", class_="metier", string="(Lettrage)") is not None:
         lettragesUnmatchedIndex = soup.find_all("span", class_="metier", string="(Lettrage)")
         for lettrage in lettragesUnmatchedIndex:
-            lettrages.append(lettrage.previous_sibling.previous_sibling.text.strip().split(',')) #lettrages = lettragesList[1].strip() + ' ' + lettragesList[0]
+            lettrages.append(lettrage.previous_sibling.previous_sibling.text.strip().split(','))
     if soup.find("span", class_="metier", string="(Couverture)") is not None:
         couverturesUnmatchedIndex = soup.find_all("span", class_="metier", string="(Couverture)")
         for couverture in couverturesUnmatchedIndex:
-            couvertures.append(couverture.previous_sibling.previous_sibling.text.strip().split(',')) #couvertures = couverturesList[1].strip() + ' ' + couverturesList[0]
+            couvertures.append(couverture.previous_sibling.previous_sibling.text.strip().split(','))
     metadata = {
         "title": title,
         "booknumber": booknumber,
@@ -101,19 +101,19 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     }
     return metadata
 
-if __name__ == "__main__":
-    series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
-    comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
-    proxies = get_proxies()
-    metadata = None
+# if __name__ == "__main__":
+#     series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
+#     comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
+#     proxies = get_proxies()
+#     metadata = None
 
-    for proxy in proxies:
-        try:
-            #metadata = get_comic_series_metadata(series_url, proxy = proxy)
-            metadata=find_series_url("lanfeust", proxy) # don't work yet
-            #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
-            if metadata is not None:
-                break
-        except:
-            raise Exception("Failed to retrieve metadata using all proxies")
-    print(metadata)
+#     for proxy in proxies:
+#         try:
+#             #metadata = get_comic_series_metadata(series_url, proxy = proxy)
+#             #metadata=find_series_url("lanfeust", proxy) # don't work yet
+#             #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
+#             if metadata is not None:
+#                 break
+#         except:
+#             raise Exception("Failed to retrieve metadata using all proxies")
+#     print(metadata)

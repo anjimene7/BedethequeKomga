@@ -1,5 +1,5 @@
 import komgaApi
-import bangumiApi
+import bedethequeApi
 from config import *
 from log import logger
 
