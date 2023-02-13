@@ -23,13 +23,13 @@ def __setStatus(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
 
         status = "ONGOING"
 
-        if(bedetheque_metadata["status"] in runningLang):
+        if(bedetheque_metadata["status"].strip() in runningLang):
             status = "ONGOING"
-        elif(bedetheque_metadata["status"] in abandonedLang):
+        elif(bedetheque_metadata["status"].strip() in abandonedLang):
             status = "ABANDONED"
-        elif(bedetheque_metadata["status"] in endedLang):
+        elif(bedetheque_metadata["status"].strip() in endedLang):
             status = "ENDED"
-        elif(bedetheque_metadata["status"] in suspendedLang):
+        elif(bedetheque_metadata["status"].strip() in suspendedLang):
             status = "HIATUS"
 
         preparedKomgaMetadata.status = status
@@ -41,6 +41,7 @@ def __prepareAuthors(authors, bedetheque_author, role):
         if author['role'] == role:
             authors.remove(author)
     bedetheque_author.reverse()
+    author = ''
     for bedetheque_author_split in bedetheque_author:
         author += bedetheque_author_split.strip() + ' '
     authors.append({"name": author.strip(), "role": role})
@@ -115,10 +116,10 @@ def __setSummary(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
         preparedKomgaMetadata.summary = komga_metadata['summary']
 
 
-def __setLinks(preparedKomgaMetadata, url, komga_metadata_links, komga_metadata):
+def __setLinks(preparedKomgaMetadata, url, komga_metadata):
     if not komga_metadata['linksLock']:
-        links = komga_metadata_links.copy()
-        for komgalink in komga_metadata_links:
+        links = komga_metadata['links'].copy()
+        for komgalink in komga_metadata['links']:
             if komgalink['label'] == "www.bedetheque.com":
                 if komgalink['url'] != url:
                     links.remove(komgalink)
@@ -134,7 +135,7 @@ def prepareKomgaSeriesMetadata(bedetheque_metadata, komga_metadata, serie_url):
     preparedKomgaSeriesMetadata = seriesMetadata()
 
     # link
-    __setLinks(preparedKomgaSeriesMetadata, serie_url, komga_metadata['links'])
+    __setLinks(preparedKomgaSeriesMetadata, serie_url, komga_metadata)
 
     # summary
     __setSummary(preparedKomgaSeriesMetadata, bedetheque_metadata, komga_metadata)
@@ -166,16 +167,16 @@ def prepareKomgaBookMetadata(bedetheque_metadata, komga_metadata, book_url):
     __setTitle(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
     # link
-    __setLinks(preparedKomgaBooksMetadata, book_url, bedetheque_metadata, komga_metadata)
+    __setLinks(preparedKomgaBooksMetadata, book_url, komga_metadata)
 
     # booknumber
-    __setBookNumber(preparedKomgaMetadata, bedetheque_metadata, komga_metadata)
+    __setBookNumber(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
     # summary
     __setSummary(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
     # authors
-    __setAuthors(preparedKomgaMetadata, bedetheque_metadata, komga_metadata)
+    __setAuthors(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
     
     # releaseDate
     # preparedKomgaBooksMetadata.releaseDate = bedetheque_metadata["date"]

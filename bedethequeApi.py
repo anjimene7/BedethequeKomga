@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-import bedethequeApi
 
 def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     url = None
@@ -90,7 +89,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
         "scenarios": scenarios,
         "dessins": dessins,
         "couleurs": couleurs,
-        "lettrage": lettrages,
+        "lettrages": lettrages,
         "couvertures": couvertures,
         "url": url
     }
