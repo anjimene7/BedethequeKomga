@@ -71,6 +71,7 @@ def refresh_metadata(force_refresh_list=[]):
 
         # call the refresh on the books of this serie
         refresh_book_metadata(komga, serie_id, force_refresh_flag, proxy = proxy)
+    logger.info("Refresh successfully terminated")
 
 
 def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):

@@ -38,7 +38,7 @@ def find_series_url(comic_series_name, proxy = None) -> str:
     return url
 
 def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str:
-
+    # TODO
     return url
 
 def get_soup(url: str, proxy = None) -> BeautifulSoup:

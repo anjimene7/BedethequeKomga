@@ -123,8 +123,10 @@ def __setLinks(preparedKomgaMetadata, url, komga_metadata):
             if komgalink['label'] == "www.bedetheque.com":
                 if komgalink['url'] != url:
                     links.remove(komgalink)
-                break
-        links.append({"label": "www.bedetheque.com", "url": url})
+                else:
+                    break
+        else:
+            links.append({"label": "www.bedetheque.com", "url": url})
         preparedKomgaMetadata.links = links
     else:
         preparedKomgaMetadata.links = komga_metadata['links']
