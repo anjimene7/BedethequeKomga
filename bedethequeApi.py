@@ -53,7 +53,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     if comic_url is not None:
         url = f"{comic_url}"
     elif comic_series_name is not None & comic_tome_number is not None:
-        raise Exception("Retrieve url from name not yet implemented") #TODO
+        raise Exception("Retrieve url from name not yet implemented") #TODO // try to retrieve it from serie URL
     else:
         raise Exception("Failed to retrieve metadata url")
 
