@@ -14,7 +14,7 @@ def refresh_metadata(force_refresh_list=[]):
 
     komga = env.komga
     all_series = env.all_series
-    proxy = bedethequeApi()
+    proxy = bedethequeApiProxies()
 
     # Loop through each book series
     for serie in all_series:
@@ -33,7 +33,7 @@ def refresh_metadata(force_refresh_list=[]):
                 serie_url = link['url']
                 break
         if serie_url is None:
-            serie_url = find_series_url(serie_name)
+            serie_url = find_series_url(serie_name, proxy = proxy)
 
         #get the metadata for the series from bedetheque
         if serie_url is None:
@@ -98,6 +98,7 @@ def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
 
         #get the metadata for the series from bedetheque
         if book_url is None:
+            logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
             break
         bedetheque_metadata = get_comic_book_metadata(book_url, proxy = proxy)
 

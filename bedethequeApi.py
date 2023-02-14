@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from log import logger
 
-def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
+def find_series_url(comic_series_name, proxy = None) -> str:
     url = None
     logger.info("No url in komga for %s, searching bedetheque by name", comic_series_name)
     if " " in comic_series_name:
@@ -11,8 +11,7 @@ def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     else:
         series_to_find = remove_accents(comic_series_name)
     searchurl = f'https://www.bedetheque.com/bandes_dessinees_{series_to_find.lower()}.html'
-    page = requests.get(searchurl, proxies=proxy.getNextProxy(), timeout=5)
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = get_soup(searchurl, proxy = proxy)
     list_results = soup.find("div", class_="widget-magazine")
     if not list_results:
         logger.warning("%s not found on bedetheque", comic_series_name)
@@ -38,7 +37,42 @@ def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
                 url = result['url']
     return url
 
-def remove_accents(comic_series_name):
+def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str:
+
+    return url
+
+def get_soup(url: str, proxy = None) -> BeautifulSoup:
+    session = requests.Session()
+    session.cookies.update(
+        {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Connection": "keep-alive",
+            "Host": "www.bedetheque.com",
+            "Referer": "https://www.bedetheque.com/",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0",
+        }
+    )
+    if proxy is not None:
+        currentProxy = proxy.getNextProxy()
+        while True:
+            try:
+                page = session.get(url, proxies=currentProxy, timeout=5)
+                break
+            except requests.exceptions.RequestException():
+                logger.warning("Failed to get page with the current proxy : %s, removing it and trying with the next one", currentProxy)
+                currentProxy = proxy.removeProxyAndGetNew(currentProxy)
+    else:
+        logger.warning("Getting soup without proxy")
+        page = session.get(url, timeout=5)
+    return BeautifulSoup(page.content, "html.parser")
+
+def remove_accents(comic_series_name) -> str:
     for pattern, replacement in [
         ("[àáâãäåÀÁÂÄÅÃ]", "a"),
         ("[èéêëÉÈÊË]", "e"),
@@ -51,19 +85,10 @@ def remove_accents(comic_series_name):
         comic_series_name_cleaned = re.sub(pattern, replacement, comic_series_name)
     return comic_series_name_cleaned
 
-def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxy = None):
-    url = None
+def get_comic_series_metadata(url: str, proxy = None):
     metadata = None
 
-    if comic_url is not None:
-        url = f"{comic_url}"
-    elif comic_series_name is not None:
-        raise Exception("Retrieve url from name not yet implemented") #TODO
-    else:
-        raise Exception("Failed to retrieve metadata url")
-
-    page = requests.get(url, proxies=proxy.getNextProxy(), timeout=5)
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = soup = get_soup(url, proxy = proxy)
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
     totalBookCount = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
@@ -97,8 +122,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     else:
         raise Exception("Failed to retrieve metadata url")
 
-    page = requests.get(url, proxies=proxy.getNextProxy(), timeout=5)
-    soup = BeautifulSoup(page.content, "html.parser")
+    soup = soup = get_soup(url, proxy = proxy)
     title = soup.find("a", itemprop="url")['title']
     booknumber = soup.find("span", class_="numa").parent.text.strip().split('.')[0]
     summary =  soup.find("meta", attrs={'name': 'description'})['content']
@@ -138,17 +162,17 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
 # if __name__ == "__main__":
 #     series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
 #     comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
-#     # proxy = bedethequeApi.bedethequeApi()
+#     proxy = bedethequeApiProxies()
 #     metadata = None
 
 
-#     # metadata = get_comic_series_metadata(series_url, proxy = proxy)
-#     metadata=find_series_url("lanfeust") # don't work yet
+#     metadata = get_comic_series_metadata(series_url, proxy = proxy)
+#     # metadata=find_series_url("lanfeust") # don't work yet
 #     #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
 
 #     print(metadata)
 
-class bedethequeApi:
+class bedethequeApiProxies:
     '''
     Class to represent the proxy settings. 
     '''
@@ -167,7 +191,8 @@ class bedethequeApi:
         self.proxyIndex += 1
         if self.proxyIndex == len(self.proxies):
             self.proxyIndex = 0
-        return proxy # TODO: test proxy before returning it. If it doesn't work, removeit and get the next one
+        return proxy
 
-    def removeProxy(self, proxy):
+    def removeProxyAndGetNew(self, proxy):
         self.proxies.remove(proxy)
+        return self.proxies[self.proxyIndex]
