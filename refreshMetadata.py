@@ -27,14 +27,18 @@ def refresh_metadata(force_refresh_list=[]):
         # if len(force_refresh_list) > 0 and not force_refresh_flag:
         #     continue
 
-        # Get the bedetheque link if it exists // TODO: find it if it doesn't exists
+        # Get the bedetheque link if it exists
         for link in serie['metadata']['links']:
             if link['label'].lower() == "www.bedetheque.com":
                 serie_url = link['url']
                 break
+        if serie_url is None:
+            serie_url = find_series_url(serie_name)
 
         #get the metadata for the series from bedetheque
         if serie_url is None:
+            logger.warning("No URL found for %s, skipping metadata refresh for this serie", serie_name)
+            refresh_book_metadata(komga, serie_id, force_refresh_flag, proxy = proxy)
             break
         bedetheque_metadata = get_comic_series_metadata(serie_url, proxy = proxy)
 

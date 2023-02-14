@@ -1,15 +1,55 @@
 import requests
+import re
 from bs4 import BeautifulSoup
+from log import logger
 
 def find_series_url(comic_series_name, proxy = None): ## doesn't work yet. TODO
     url = None
-
-    raise Exception("Retrieve url not yet implemented") #TODO
-    page = requests.get(f"https://www.bedetheque.com/search/tout", params={"RechTexte": comic_series_name, "RechWhere": "7"},
-                        proxies=proxy.getNextProxy(), timeout=5)
-    soup = BeautifulSoup(page.text, "html.parser")
-    url = soup.find_all("div", class_="line-title search-line")
+    logger.info("No url in komga for %s, searching bedetheque by name", comic_series_name)
+    if " " in comic_series_name:
+        series_to_find = remove_accents(comic_series_name).split(" ")[0]
+    else:
+        series_to_find = remove_accents(comic_series_name)
+    searchurl = f'https://www.bedetheque.com/bandes_dessinees_{series_to_find.lower()}.html'
+    page = requests.get(searchurl, proxies=proxy.getNextProxy(), timeout=5)
+    soup = BeautifulSoup(page.content, "html.parser")
+    list_results = soup.find("div", class_="widget-magazine")
+    if not list_results:
+        logger.warning("%s not found on bedetheque", comic_series_name)
+        return None
+    results = []
+    for result in list_results.find_all("li"):
+        results.append({"title": result.find("a").text.strip(), "url": result.find("a")["href"]})
+    for result in results:
+        if result['title'].lower() == comic_series_name.lower():
+            url = result['url']
+    if not url:
+        print("No serie link found for " + comic_series_name)
+        print("Found those series :")
+        for result in results:
+            if result['title'].lower().startswith(comic_series_name.lower()):
+                print(result['title'])
+        comic_series_name = input("Choose a serie: ")
+        if not comic_series_name:
+            logger.warning("No serie chosen from bedetheque for %s", comic_series_name)
+            return None
+        for result in results:
+            if result['title'].lower() == comic_series_name.lower():
+                url = result['url']
     return url
+
+def remove_accents(comic_series_name):
+    for pattern, replacement in [
+        ("[àáâãäåÀÁÂÄÅÃ]", "a"),
+        ("[èéêëÉÈÊË]", "e"),
+        ("[çÇ]", "c"),
+        ("[ìíîïÍÌÎÏ]", "i"),
+        ("[òóôõöÓÒÔÖÕ]", "o"),
+        ("[ùúûüÚÙÛÜ]", "u"),
+        ("[œŒ]", "oe"),
+    ]:
+        comic_series_name_cleaned = re.sub(pattern, replacement, comic_series_name)
+    return comic_series_name_cleaned
 
 def get_comic_series_metadata(comic_url = None, comic_series_name = None, proxy = None):
     url = None
@@ -98,12 +138,12 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
 # if __name__ == "__main__":
 #     series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
 #     comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
-#     proxy = bedethequeApi.bedethequeApi()
+#     # proxy = bedethequeApi.bedethequeApi()
 #     metadata = None
 
 
-#     metadata = get_comic_series_metadata(series_url, proxy = proxy)
-#     #metadata=find_series_url("lanfeust", proxy) # don't work yet
+#     # metadata = get_comic_series_metadata(series_url, proxy = proxy)
+#     metadata=find_series_url("lanfeust") # don't work yet
 #     #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
 
 #     print(metadata)
