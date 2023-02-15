@@ -1,4 +1,4 @@
-# Bedetheque metadata scraper for Komga - Work in progress!! Not yet usable
+# Bedetheque metadata scraper for Komga
 
 ## Introduction
 
