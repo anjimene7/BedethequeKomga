@@ -17,7 +17,8 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ### TODO
 
-- [ ] Adding Metadata to a Single Manga
+- [ ] Adding Metadata to a Single BD
+- [ ] Refresh only ONGOING BD
 
 ## Requirements
 
