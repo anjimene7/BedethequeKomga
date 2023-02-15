@@ -38,8 +38,8 @@ def refresh_metadata(force_refresh_list=[]):
         #get the metadata for the series from bedetheque
         if serie_url is None:
             logger.warning("No URL found for %s, skipping metadata refresh for this serie", serie_name)
-            refresh_book_metadata(komga, serie_id, force_refresh_flag, proxy = proxy)
-            break
+            refresh_book_metadata(komga, serie_id, serie_url, force_refresh_flag, proxy = proxy)
+            continue
         bedetheque_metadata = get_comic_series_metadata(serie_url, proxy = proxy)
 
         # Prepare the metadata
@@ -48,7 +48,7 @@ def refresh_metadata(force_refresh_list=[]):
 
         if(processedMetadata.isvalid == False):
             logger.warning("Failed to update series " + serie_name)
-            break
+            continue
 
         serie_data = {
             "status": processedMetadata.status,
@@ -70,11 +70,11 @@ def refresh_metadata(force_refresh_list=[]):
             continue
 
         # call the refresh on the books of this serie
-        refresh_book_metadata(komga, serie_id, force_refresh_flag, proxy = proxy)
+        refresh_book_metadata(komga, serie_id, serie_url, force_refresh_flag, proxy = proxy)
     logger.info("Refresh successfully terminated")
 
 
-def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
+def refresh_book_metadata(komga, series_id, serie_url, force_refresh_flag, proxy = None):
     '''
     Refresh Book Metadata
     '''
@@ -96,11 +96,13 @@ def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
             if link['label'].lower() == "www.bedetheque.com":
                 book_url = link['url']
                 break
+        if book_url is None:
+            book_url = find_comic_url(book_name, book['number'], serie_url, proxy = proxy)
 
         #get the metadata for the series from bedetheque
         if book_url is None:
             logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
-            break
+            continue
         bedetheque_metadata = get_comic_book_metadata(book_url, proxy = proxy)
 
         # Prepare the metadata
@@ -108,7 +110,7 @@ def refresh_book_metadata(komga, series_id, force_refresh_flag, proxy = None):
 
         if(processedMetadata.isvalid == False):
             logger.warning("Failed to prepare book metadata. Book: " + book_name)
-            break
+            continue
 
         book_data = {
             "authors": processedMetadata.authors,

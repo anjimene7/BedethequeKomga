@@ -5,7 +5,7 @@ from log import logger
 
 def find_series_url(comic_series_name, proxy = None) -> str:
     url = None
-    logger.info("No url in komga for %s, searching bedetheque by name", comic_series_name)
+    logger.info("No url in komga for serie %s, searching bedetheque by name", comic_series_name)
     if " " in comic_series_name:
         series_to_find = remove_accents(comic_series_name).split(" ")[0]
     else:
@@ -38,8 +38,22 @@ def find_series_url(comic_series_name, proxy = None) -> str:
     return url
 
 def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str:
-    # TODO
-    return url
+    logger.info("No url in komga for tome %s, searching bedetheque by name", comic_name)
+    soup = get_soup(serie_url, proxy = proxy)
+    if albums := soup.find("div", class_="tab_content_liste_albums"):
+        for album in albums.find_all("li"):
+            if album.find("label").text.strip().removesuffix(".").lower() == comic_booknumber:
+                return album.find("a")["href"]
+        for album in albums.find_all("li"):
+            if album.find("a").text.strip() == comic_name:
+                return album.find("a")["href"]
+    if not (block := soup.find("div", class_="album-main")):
+        logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
+        return None
+    if not (block_title := block.find("a", class_="titre")):
+        logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
+        return None
+    return block_title["href"]
 
 def get_soup(url: str, proxy = None) -> BeautifulSoup:
     session = requests.Session()
