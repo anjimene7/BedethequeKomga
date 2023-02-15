@@ -22,6 +22,7 @@ def find_series_url(comic_series_name, proxy = None) -> str:
     for result in results:
         if result['title'].lower() == comic_series_name.lower():
             url = result['url']
+            logger.info("Url found for %s", comic_series_name)
     if not url:
         print("No serie link found for " + comic_series_name)
         print("Found those series :")
@@ -35,6 +36,7 @@ def find_series_url(comic_series_name, proxy = None) -> str:
         for result in results:
             if result['title'].lower() == comic_series_name.lower():
                 url = result['url']
+                logger.info("Url found for %s", comic_series_name)
     return url
 
 def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str:
@@ -43,9 +45,11 @@ def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str
     if albums := soup.find("div", class_="tab_content_liste_albums"):
         for album in albums.find_all("li"):
             if album.find("label").text.strip().removesuffix(".").lower() == comic_booknumber:
+                logger.info("Url found for tome %s", comic_name)
                 return album.find("a")["href"]
         for album in albums.find_all("li"):
             if album.find("a").text.strip() == comic_name:
+                logger.info("Url found for tome %s", comic_name)
                 return album.find("a")["href"]
     if not (block := soup.find("div", class_="album-main")):
         logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
@@ -53,6 +57,7 @@ def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str
     if not (block_title := block.find("a", class_="titre")):
         logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
         return None
+    logger.info("Url found for tome %s", comic_name)
     return block_title["href"]
 
 def get_soup(url: str, proxy = None) -> BeautifulSoup:
@@ -120,8 +125,7 @@ def get_comic_series_metadata(url: str, proxy = None):
     }
     return metadata
 
-def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_tome_number = None, proxy = None):
-    url = None
+def get_comic_book_metadata(comic_url: str, proxy = None):
     metadata = None
     couleurs = []
     dessins = []
@@ -129,14 +133,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
     lettrages = []
     couvertures = []
 
-    if comic_url is not None:
-        url = f"{comic_url}"
-    elif comic_series_name is not None & comic_tome_number is not None:
-        raise Exception("Retrieve url from name not yet implemented") #TODO // try to retrieve it from serie URL
-    else:
-        raise Exception("Failed to retrieve metadata url")
-
-    soup = soup = get_soup(url, proxy = proxy)
+    soup = soup = get_soup(comic_url, proxy = proxy)
     title = soup.find("a", itemprop="url")['title']
     booknumber = soup.find("span", class_="numa").parent.text.strip().split('.')[0]
     summary =  soup.find("meta", attrs={'name': 'description'})['content']
@@ -169,7 +166,7 @@ def get_comic_book_metadata(comic_url = None, comic_series_name = None, comic_to
         "couleurs": couleurs,
         "lettrages": lettrages,
         "couvertures": couvertures,
-        "url": url
+        "url": comic_url
     }
     return metadata
 
@@ -196,8 +193,18 @@ class bedethequeApiProxies:
 
     def __get_proxies(self):
         url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
-        response = requests.get(url)
+        try:
+            response = requests.get(url)
+        except requests.exceptions.RequestException():
+            logger.warning("Failed to get page with the proxies")
+            chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
+            if chooseToContinue == 'y' or chooseToContinue == 'Y':
+                logger.warning("Continuing without a proxy")
+                return None
+            logger.error("Choose to not continue without a proxy")
+            raise Exception("Failed to retrieve proxies")
         proxies = response.text.strip().split("\r\n")
+        logger.info("proxys retreived")
         return [{"http": "http://" + proxy} for proxy in proxies]
 
     def getNextProxy(self):
@@ -208,5 +215,6 @@ class bedethequeApiProxies:
         return proxy
 
     def removeProxyAndGetNew(self, proxy):
+        logger.warning("proxy %s dooesn't work, removing it and trying the next one", proxy)
         self.proxies.remove(proxy)
         return self.proxies[self.proxyIndex]
