@@ -18,7 +18,8 @@ def refresh_metadata():
     # Loop through each book series
     for serie in all_series:
         serie_id = serie['id']
-        serie_name = serie['name']
+        if not (serie_name := serie['metadata']['title']):
+            serie_name = serie['name']
         serie_url = None
 
         # Get the bedetheque link if it exists
@@ -76,7 +77,8 @@ def refresh_book_metadata(komga, series_id, serie_url, proxy = None):
     # Loop through each book in the series on komga
     for book in all_books['content']:
         book_id = book['id']
-        book_name = book['name']
+        if not (book_name := book['metadata']['title']):
+            book_name = book['name']
         book_url = None
 
         # Get the bedetheque link if it exists

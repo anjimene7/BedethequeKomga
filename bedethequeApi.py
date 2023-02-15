@@ -101,8 +101,8 @@ def remove_accents(comic_series_name) -> str:
         ("[ùúûüÚÙÛÜ]", "u"),
         ("[œŒ]", "oe"),
     ]:
-        comic_series_name_cleaned = re.sub(pattern, replacement, comic_series_name)
-    return comic_series_name_cleaned
+        comic_series_name = re.sub(pattern, replacement, comic_series_name)
+    return comic_series_name
 
 # Python code to check if a given ISBN is valid or not.
 def isValidISBN(isbn):
@@ -135,6 +135,10 @@ def get_comic_series_metadata(url: str, proxy = None):
     return metadata
 
 def get_comic_book_metadata(comic_url: str, proxy = None):
+    title = ''
+    isbn = ''
+    releaseDate = ''
+    booknumber = 0
     metadata = None
     couleurs = []
     dessins = []
