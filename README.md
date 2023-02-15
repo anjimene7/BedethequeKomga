@@ -8,17 +8,16 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ## Features
 
-### completed
-
-See [DESIGN](DESIGN.md) for processing logic
+### Completed
+- [X] Add Metadata to BD Series and books
+- [X] Automatically skip entries which are locked on Komga
+- [X] Optional processing range: ①All book series; ②Book series in the specified library; ③Book series in the specified collection
+- [X] Retrieve metadata using a proxy automaticaly
+- [X] Detailed log file create at each run
 
 ### TODO
 
-- [ ] Manga Series Add Metadata
 - [ ] Adding Metadata to a Single Manga
-- [ ] Automatically skip entries with refreshed metadata
-- [ ] Optional processing range: ①All book series; ②Book series in the specified library; ③Book series in the specified collection
-
 
 ## Requirements
 
@@ -31,19 +30,18 @@ See [DESIGN](DESIGN.md) for processing logic
 1. Install the requirements using `pip install -r requirements.txt`
 2. Rename `config.template.py` to `config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
 
-    `FORCE_REFRESH_LIST` Book series to force refresh to avoid automatic skipping. You can get it by clicking the book series (corresponding link) on the komga interface, in the form of: `'0B79XX3NP97K9'`. When filling in, `''`wrap in English quotation marks and `,` separate with English commas. 
-
     `KOMGA_LIBRARY_LIST` Processes the book series in the specified library. You can get it by clicking the library (corresponding link) on the komga interface, in the form of:`'0B79XX3NP97K9'`. When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_COLLECTION_LIST` cannot be used at the same time
 
     `KOMGA_COLLECTION_LIST` Processes the book series in the specified collection. You can get it by clicking Favorite (corresponding link) on the komga interface, in the form of: `'0B79XX3NP97K9'`. When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_LIBRARY_LIST` cannot be used at the same time
 
-3. Run the script using `python refreshMetadata.py` Note: Processed series and books will be automatically skipped
+    Leave both empty to process everything
 
-**Tips:**
+3. Run the script using `python refreshMetadata.py` Note: Locked field will be automatically skipped
 
-If there is no need to refresh series that have failed:
-- You can modify it `upsert_series_record` to `0` `1`
-- Or modify the database yourself
+**NB:**
+
+The script first retrieve a list of proxies before interrogating bedetheque, to limit the chance of being blacklisted with too many calls.
+However, this method is not perfect. Please don't use it on a large library at once. Be respectful of bedetheque bandwitch ;)
 
 ## Issues & Pull Requests
 

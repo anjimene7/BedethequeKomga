@@ -21,11 +21,6 @@ def refresh_metadata():
         serie_name = serie['name']
         serie_url = None
 
-        # force_refresh_flag = serie_id in env.force_refresh_list
-        # # Skip the serie if it's not in the force refresh list // TODO
-        # if len(force_refresh_list) > 0 and not force_refresh_flag:
-        #     continue
-
         # Get the bedetheque link if it exists
         for link in serie['metadata']['links']:
             if link['label'].lower() == "www.bedetheque.com":
@@ -83,10 +78,6 @@ def refresh_book_metadata(komga, series_id, serie_url, proxy = None):
         book_id = book['id']
         book_name = book['name']
         book_url = None
-
-        # # Skip the book if it's not in the force refresh list // TODO
-        # if len(force_refresh_list) > 0 and not force_refresh_flag:
-        #     continue
 
         # Get the bedetheque link if it exists
         for link in book['metadata']['links']:
