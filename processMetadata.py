@@ -4,10 +4,10 @@
 # ------------------------------------------------------------------
 
 
-from komgaApi import *
+from komgaApi import seriesMetadata, bookMetadata
 
 
-def __setGenres(preparedKomgaMetadata, bedetheque_metadata, komga_metadata): 
+def __setGenres(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     if not komga_metadata['genresLock']:
         preparedKomgaMetadata.genres = bedetheque_metadata['genres']
     else:
@@ -23,13 +23,13 @@ def __setStatus(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
 
         status = "ONGOING"
 
-        if(bedetheque_metadata["status"].strip() in runningLang):
+        if bedetheque_metadata["status"].strip() in runningLang:
             status = "ONGOING"
-        elif(bedetheque_metadata["status"].strip() in abandonedLang):
+        elif bedetheque_metadata["status"].strip() in abandonedLang:
             status = "ABANDONED"
-        elif(bedetheque_metadata["status"].strip() in endedLang):
+        elif bedetheque_metadata["status"].strip() in endedLang:
             status = "ENDED"
-        elif(bedetheque_metadata["status"].strip() in suspendedLang):
+        elif bedetheque_metadata["status"].strip() in suspendedLang:
             status = "HIATUS"
 
         preparedKomgaMetadata.status = status
@@ -79,13 +79,13 @@ def __setAuthors(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     else:
         preparedKomgaMetadata.authors = komga_metadata['authors']
 
-def __setTotalBookCount(preparedKomgaMetadata, bedetheque_metadata, komga_metadata): 
+def __setTotalBookCount(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     if not komga_metadata['totalBookCountLock']:
         preparedKomgaMetadata.totalBookCount = bedetheque_metadata['totalBookCount']
     else:
         preparedKomgaMetadata.totalBookCount = komga_metadata['totalBookCount']
 
-def __setBookNumber(preparedKomgaMetadata, bedetheque_metadata, komga_metadata): 
+def __setBookNumber(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     if not komga_metadata['numberLock']:
         preparedKomgaMetadata.number = bedetheque_metadata['booknumber']
     else:
@@ -114,6 +114,18 @@ def __setSummary(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
         preparedKomgaMetadata.summary = bedetheque_metadata["summary"]
     else:
         preparedKomgaMetadata.summary = komga_metadata['summary']
+
+def __setISBN(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
+    if not komga_metadata['isbnLock']:
+        preparedKomgaMetadata.isbn = bedetheque_metadata["isbn"]
+    else:
+        preparedKomgaMetadata.isbn = komga_metadata['isbn']
+
+def __setReleaseDate(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
+    if not komga_metadata['releaseDateLock']:
+        preparedKomgaMetadata.releaseDate = bedetheque_metadata["releaseDate"]
+    else:
+        preparedKomgaMetadata.releaseDate = komga_metadata['releaseDate']
 
 
 def __setLinks(preparedKomgaMetadata, url, komga_metadata):
@@ -164,7 +176,6 @@ def prepareKomgaSeriesMetadata(bedetheque_metadata, komga_metadata, serie_url):
 def prepareKomgaBookMetadata(bedetheque_metadata, komga_metadata, book_url):
     preparedKomgaBooksMetadata = bookMetadata()
 
-
     # title
     __setTitle(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
@@ -179,16 +190,12 @@ def prepareKomgaBookMetadata(bedetheque_metadata, komga_metadata, book_url):
 
     # authors
     __setAuthors(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
-    
+
     # releaseDate
-    # preparedKomgaBooksMetadata.releaseDate = bedetheque_metadata["date"]
+    __setReleaseDate(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
     # isbn
-    # for info in bedetheque_metadata["infobox"]:
-    #     if info["key"] == "ISBN":
-    #         # ISBN必须是13位数
-    #         # preparedKomgaBooksMetadata.isbn = info["value"]
-    #         continue
+    __setISBN(preparedKomgaBooksMetadata, bedetheque_metadata, komga_metadata)
 
     preparedKomgaBooksMetadata.isvalid = True
     return preparedKomgaBooksMetadata

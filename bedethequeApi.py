@@ -1,5 +1,5 @@
-import requests
 import re
+import requests
 from bs4 import BeautifulSoup
 from log import logger
 
@@ -52,10 +52,10 @@ def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str
                 logger.info("Url found for tome %s", comic_name)
                 return album.find("a")["href"]
     if not (block := soup.find("div", class_="album-main")):
-        logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
+        logger.warning("No serie found from bedetheque for %s from url %s", comic_name, serie_url)
         return None
     if not (block_title := block.find("a", class_="titre")):
-        logger.warning("No serie found from bedetheque for %s from url %s", comic_series_name, serie_url)
+        logger.warning("No serie found from bedetheque for %s from url %s", comic_name, serie_url)
         return None
     logger.info("Url found for tome %s", comic_name)
     return block_title["href"]
@@ -104,6 +104,15 @@ def remove_accents(comic_series_name) -> str:
         comic_series_name_cleaned = re.sub(pattern, replacement, comic_series_name)
     return comic_series_name_cleaned
 
+# Python code to check if a given ISBN is valid or not.
+def isValidISBN(isbn):
+    isbn = isbn.replace('-', '').replace(' ', '')
+    if len(isbn) != 13:
+        return False
+    product = (sum(int(ch) for ch in isbn[::2])
+               + sum(int(ch) * 3 for ch in isbn[1::2]))
+    return product % 10 == 0
+
 def get_comic_series_metadata(url: str, proxy = None):
     metadata = None
 
@@ -133,30 +142,69 @@ def get_comic_book_metadata(comic_url: str, proxy = None):
     lettrages = []
     couvertures = []
 
-    soup = soup = get_soup(comic_url, proxy = proxy)
-    title = soup.find("a", itemprop="url")['title']
-    booknumber = soup.find("span", class_="numa").parent.text.strip().split('.')[0]
-    summary =  soup.find("meta", attrs={'name': 'description'})['content']
-    if soup.find("span", class_="metier", string="(Scénario)") is not None:
-        scenarioUnmatchedIndex = soup.find_all("span", class_="metier", string="(Scénario)")
-        for scenario in scenarioUnmatchedIndex:
-            scenarios.append(scenario.previous_sibling.previous_sibling.text.strip().split(','))
-    if soup.find("span", class_="metier", string="(Dessin)") is not None:
-        dessinUnmatchedIndex = soup.find_all("span", class_="metier", string="(Dessin)")
-        for dessin in dessinUnmatchedIndex:
-            dessins.append(dessin.previous_sibling.previous_sibling.text.strip().split(','))
-    if soup.find("span", class_="metier", string="(Couleurs)") is not None:
-        couleurUnmatchedIndex = soup.find_all("span", class_="metier", string="(Couleurs)")
-        for couleur in couleurUnmatchedIndex:
-            couleurs.append(couleur.previous_sibling.previous_sibling.text.strip().split(','))
-    if soup.find("span", class_="metier", string="(Lettrage)") is not None:
-        lettragesUnmatchedIndex = soup.find_all("span", class_="metier", string="(Lettrage)")
-        for lettrage in lettragesUnmatchedIndex:
-            lettrages.append(lettrage.previous_sibling.previous_sibling.text.strip().split(','))
-    if soup.find("span", class_="metier", string="(Couverture)") is not None:
-        couverturesUnmatchedIndex = soup.find_all("span", class_="metier", string="(Couverture)")
-        for couverture in couverturesUnmatchedIndex:
-            couvertures.append(couverture.previous_sibling.previous_sibling.text.strip().split(','))
+    soup = get_soup(comic_url, proxy = proxy)
+    summary =  soup.find("meta", attrs={'name': 'description'})['content'].strip().replace("\n", " ")
+
+    if not (content := soup.find("div", class_="tab_content_liste_albums")):
+        return None
+    infos = content.find_all("li")
+    for info in infos:
+        if not (block := info.find("label")):
+            continue
+
+        match block.text.strip():
+            case "Titre :" as key:
+                title = info.text.removeprefix(key).strip()
+            case "Tome :" as key:
+                booknumber = info.text.removeprefix(key).strip()
+            case "Scénario :" as key:
+                scenarios.append(info.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                while ((next_block := info.find_next_sibling("li"))
+                    and next_block.find("label")
+                    and not next_block.find("label").text.strip()):
+                    scenarios.append(next_block.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                    info = next_block
+            case "Dessin :" as key:
+                dessins.append(info.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                while ((next_block := info.find_next_sibling("li"))
+                    and next_block.find("label")
+                    and not next_block.find("label").text.strip()):
+                    dessins.append(next_block.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                    info = next_block
+            case "Couleurs :" as key:
+                couleurs.append(info.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                while ((next_block := info.find_next_sibling("li"))
+                    and next_block.find("label")
+                    and not next_block.find("label").text.strip()):
+                    couleurs.append(next_block.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                    info = next_block
+            case "Lettrage :" as key:
+                lettrages.append(info.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                while ((next_block := info.find_next_sibling("li"))
+                    and next_block.find("label")
+                    and not next_block.find("label").text.strip()):
+                    lettrages.append(next_block.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                    info = next_block
+            case "Couverture :" as key:
+                couvertures.append(info.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                while ((next_block := info.find_next_sibling("li"))
+                    and next_block.find("label")
+                    and not next_block.find("label").text.strip()):
+                    couvertures.append(next_block.text.strip().removeprefix(key).strip("\r\n ").split(','))
+                    info = next_block
+            case "Dépot légal :" as key:
+                release_date_pattern = re.compile(
+                    r"\(Parution le (?P<day>\d+)/(?P<month>\d+)/(?P<year>\d+)\)"
+                )
+                if (block := info.find("span")) and (
+                    match := release_date_pattern.match(info.text.strip())):
+                    releaseDate = match.group("year") + "-" + match.group("month") + "-" + match.group("day")
+                else:
+                    releaseDate = ''
+            case "EAN/ISBN :" as key:
+                if not isValidISBN(isbn := info.text.removeprefix(key).strip()):
+                    isbn = ''
+
     metadata = {
         "title": title,
         "booknumber": booknumber,
@@ -166,26 +214,25 @@ def get_comic_book_metadata(comic_url: str, proxy = None):
         "couleurs": couleurs,
         "lettrages": lettrages,
         "couvertures": couvertures,
-        "url": comic_url
+        "url": comic_url,
+        "isbn": isbn,
+        "releaseDate": releaseDate
     }
     return metadata
 
 # if __name__ == "__main__":
-#     series_url = f"https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
-#     comic_url = f"https://www.bedetheque.com/BD-Kookaburra-K-Tome-2-La-planete-aux-illusions-68828.html"  # replace with the ID of the comic you're interested in
-#     proxy = bedethequeApiProxies()
-#     metadata = None
+#     series_url = "https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
+#     comic_url = "https://www.bedetheque.com/BD-Morea-Tome-1-Le-Sang-des-Anges-4108.html"  # replace with the ID of the comic you're interested in
 
-
-#     metadata = get_comic_series_metadata(series_url, proxy = proxy)
+#     # metadata = get_comic_series_metadata(series_url, proxy = proxy)
 #     # metadata=find_series_url("lanfeust") # don't work yet
-#     #metadata = get_comic_book_metadata(comic_url, proxy = proxy)
+#     metadata = get_comic_book_metadata(comic_url, proxy = bedethequeApiProxies())
 
 #     print(metadata)
 
 class bedethequeApiProxies:
     '''
-    Class to represent the proxy settings. 
+    Class to represent the proxy settings.
     '''
     def __init__(self):
         self.proxies = self.__get_proxies()
@@ -194,17 +241,17 @@ class bedethequeApiProxies:
     def __get_proxies(self):
         url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=15)
         except requests.exceptions.RequestException():
             logger.warning("Failed to get page with the proxies")
             chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
             if chooseToContinue == 'y' or chooseToContinue == 'Y':
                 logger.warning("Continuing without a proxy")
                 return None
-            logger.error("Choose to not continue without a proxy")
-            raise Exception("Failed to retrieve proxies")
+            logger.error("Choose to not continue without a proxy. Exiting")
+            exit()
         proxies = response.text.strip().split("\r\n")
-        logger.info("proxys retreived")
+        logger.info("proxys retrieved")
         return [{"http": "http://" + proxy} for proxy in proxies]
 
     def getNextProxy(self):

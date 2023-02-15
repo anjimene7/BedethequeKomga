@@ -25,7 +25,7 @@ class KomgaApi:
         else:
             url += '?size=50000'
         # make a GET request to the URL to retrieve all series
-        response = requests.get(url, auth=self.auth)
+        response = requests.get(url, auth=self.auth, timeout=15)
         # return the response as a JSON object
         return response.json()
 
@@ -56,7 +56,7 @@ class KomgaApi:
         Retrieves all series with a specified readlist in the komga comic.
         '''
         response = requests.get(
-            f'{self.base_url}/readlists/{readlist_id}', auth=self.auth)
+            f'{self.base_url}/readlists/{readlist_id}', auth=self.auth, timeout=15)
         # return the response as a JSON object
         return response.json()
 
@@ -68,7 +68,7 @@ class KomgaApi:
         '''
         # make a GET request to the URL to retrieve all books in a given series
         response = requests.get(
-            f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth)
+            f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth, timeout=15)
         # return the response as a JSON object
         return response.json()
 
@@ -78,7 +78,7 @@ class KomgaApi:
         '''
         # make a PATCH request to the URL to update the metadata for a given series
         response = requests.patch(
-            f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata)
+            f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata, timeout=15)
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
 
@@ -90,16 +90,16 @@ class KomgaApi:
         '''
         # make a PATCH request to the URL to update the metadata for a given book
         response = requests.patch(
-            f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata)
+            f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata, timeout=15)
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
 
 
 class seriesMetadata:
     '''
-    Class to represent Komga series metadata fields. 
+    Class to represent Komga series metadata fields.
 
-    See https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L10449 for fields. 
+    See https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L10449 for fields.
     '''
 
     def __init__(self):
@@ -125,7 +125,8 @@ class bookMetadata:
         self.number = 0
         # self.numberSort = 0
         self.authors = "[]"
-        # self.releaseDate = None
+        self.releaseDate = None
         self.links = "[]"
+        self.isbn = ""
 
         self.isvalid = False
