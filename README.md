@@ -38,6 +38,9 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
     Leave both empty to process everything
 
+
+    `KOMGA_STATUS` Processes the book series in the specified status. By default, books are added to Komga in "En cours" (ONGOING) Status. On this script, by default, only refresh ONGOING and HIATUS (suspendu) status. But it can be forced to perform it for `'ONGOING'`, `'HIATUS'`, `'ENDED'` or `'ABANDONED'`, seperated by a coma `,`.
+
 3. Run the script using `python refreshMetadata.py` Note: Locked field will be automatically skipped
 
 **NB:**
