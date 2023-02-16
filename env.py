@@ -9,6 +9,7 @@ class InitEnv:
         self.komga = komgaApi.KomgaApi(
             KOMGA_BASE_URL, KOMGA_EMAIL, KOMGA_EMAIL_PASSWORD)
         self.all_series = []
+        self.status_to_update = KOMGA_STATUS
 
         if KOMGA_LIBRARY_LIST and KOMGA_COLLECTION_LIST:
             logger.error(

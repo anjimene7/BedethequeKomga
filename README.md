@@ -14,11 +14,12 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [X] Optional processing range: ①All book series; ②Book series in the specified library; ③Book series in the specified collection
 - [X] Retrieve metadata using a proxy automaticaly
 - [X] Detailed log file create at each run
+- [X] Refresh only BD by Status. By default, only ONGOING and HIATUS
 
 ### TODO
 
-- [ ] Adding Metadata to a Single BD
-- [ ] Refresh only ONGOING BD
+- [ ] Adding Metadata to a specific serie
+
 
 ## Requirements
 

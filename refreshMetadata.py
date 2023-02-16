@@ -22,6 +22,9 @@ def refresh_metadata():
             serie_name = serie['name']
         serie_url = None
 
+        if not serie['metadata']['status'] in env.status_to_update:
+            continue
+
         # Get the bedetheque link if it exists
         for link in serie['metadata']['links']:
             if link['label'].lower() == "www.bedetheque.com":
