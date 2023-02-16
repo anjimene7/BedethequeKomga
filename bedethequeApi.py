@@ -83,7 +83,7 @@ def get_soup(url: str, proxy = None) -> BeautifulSoup:
             try:
                 page = session.get(url, proxies=currentProxy, timeout=5)
                 break
-            except requests.exceptions.RequestException():
+            except Exception():
                 logger.warning("Failed to get page with the current proxy : %s, removing it and trying with the next one", currentProxy)
                 currentProxy = proxy.removeProxyAndGetNew(currentProxy)
     else:
@@ -236,7 +236,7 @@ class bedethequeApiProxies:
         url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
         try:
             response = requests.get(url, timeout=15)
-        except requests.exceptions.RequestException():
+        except Exception():
             logger.warning("Failed to get page with the proxies")
             chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
             if chooseToContinue == 'y' or chooseToContinue == 'Y':
