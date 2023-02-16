@@ -13,13 +13,15 @@ class KomgaApi:
         self.base_url = base_url + '/api/v1'
         self.auth = (username, password)
 
-    def get_all_series(self, parameters=None):
+    def get_all_series(self, parameters=None, serie_id = None):
         '''
         Retrieves all series in the komga comic.
 
         https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L4859
         '''
         url = f'{self.base_url}/series'
+        if serie_id is not None:
+            url += f'/{serie_id}'
         if parameters:
             url += f'?{parameters}&size=50000'
         else:
@@ -42,6 +44,12 @@ class KomgaApi:
         Retrieves all series with a specified collection in the komga comic.
         '''
         return self.get_all_series(f'collection_id={collection_id}')
+
+    def get_serie_with_serieid(self, serie_id):
+        '''
+        Retrieves the serie with a specified serie id in the komga comic.
+        '''
+        return self.get_all_series(serie_id = serie_id)
 
     def get_series_with_read_status(self, read_status):
         '''

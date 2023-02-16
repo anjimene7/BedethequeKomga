@@ -15,10 +15,11 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [X] Retrieve metadata using a proxy automaticaly
 - [X] Detailed log file create at each run
 - [X] Refresh only BD by Status. By default, only ONGOING and HIATUS
+- [X] Adding Metadata to a specific series (and their underlying books)
 
 ### TODO
 
-- [ ] Adding Metadata to a specific serie
+
 
 
 ## Requirements
@@ -32,11 +33,13 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 1. Install the requirements using `pip install -r requirements.txt`
 2. Rename `config.template.py` to `config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
 
-    `KOMGA_LIBRARY_LIST` Processes the book series in the specified library. You can get it by clicking the library (corresponding link) on the komga interface, in the form of:`'0B79XX3NP97K9'`. When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_COLLECTION_LIST` cannot be used at the same time
+    `KOMGA_LIBRARY_LIST` Processes the book series in the specified library. You can get it by clicking the library (https://komgaURL/libraries/**02A5TD2KH8SQW**/series) on the komga interface, in the form of:`'0B79XX3NP97K9'` (and sometime for old entries, just some numbers). When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_COLLECTION_LIST` and `KOMGA_SERIE_LIST` cannot be used at the same time
 
-    `KOMGA_COLLECTION_LIST` Processes the book series in the specified collection. You can get it by clicking Favorite (corresponding link) on the komga interface, in the form of: `'0B79XX3NP97K9'`. When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_LIBRARY_LIST` cannot be used at the same time
+    `KOMGA_COLLECTION_LIST` Processes the book series in the specified collection. You can get it by clicking Favorite (https://komgaURL/collections/**0BEVBQDGY77SA**) on the komga interface, in the form of: `'0B79XX3NP97K9'` (and sometime for old entries, just some numbers). When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_LIBRARY_LIST` and `KOMGA_SERIE_LIST` cannot be used at the same time
 
-    Leave both empty to process everything
+    `KOMGA_SERIE_LIST` Processes the book series specified. You can get it by clicking the serie (https://komgaURL/series/**02A5244DQGRDE**) on the komga interface, in the form of:`'0B79XX3NP97K9'` (and sometime for old entries, just some numbers). When filling in, `''` wrap in English quotation marks and `,` separate with English commas. and `KOMGA_LIBRARY_LIST` and `KOMGA_COLLECTION_LIST`cannot be used at the same time
+
+    Leave the three of them empty to process everything
 
 
     `KOMGA_STATUS` Processes the book series in the specified status. By default, books are added to Komga in "En cours" (ONGOING) Status. On this script, by default, only refresh ONGOING and HIATUS (suspendu) status. But it can be forced to perform it for `'ONGOING'`, `'HIATUS'`, `'ENDED'` or `'ABANDONED'`, seperated by a coma `,`.
