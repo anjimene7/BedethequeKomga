@@ -40,6 +40,20 @@ def refresh_metadata():
             continue
         bedetheque_metadata = get_comic_series_metadata(serie_url, proxy = proxy)
 
+        #checking we have no issue with the metadata
+        if bedetheque_metadata is None:
+            logger.warning("Incorrect URL found for %s, trying to look for the URL", serie_name)
+            serie_url = find_series_url(serie_name, proxy = proxy)
+            if serie_url is None:
+                logger.warning("No URL found for %s, skipping metadata refresh for this serie", serie_name)
+                refresh_book_metadata(komga, serie_id, serie_url, proxy = proxy)
+                continue
+            bedetheque_metadata = get_comic_series_metadata(serie_url, proxy = proxy)
+            if bedetheque_metadata is None:
+                logger.error("Error while parsing URL %s found for %s, skipping metadata refresh for this serie", serie_url, serie_name)
+                refresh_book_metadata(komga, serie_id, serie_url, proxy = proxy)
+                continue
+
         # Prepare the metadata
         processedMetadata = processMetadata.prepareKomgaSeriesMetadata(
             bedetheque_metadata, serie['metadata'], serie_url)
@@ -100,6 +114,18 @@ def refresh_book_metadata(komga, series_id, serie_url, proxy = None):
             logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
             continue
         bedetheque_metadata = get_comic_book_metadata(book_url, proxy = proxy)
+
+        #checking we have no issue with the metadata
+        if bedetheque_metadata is None:
+            logger.warning("Incorrect URL found for %s, trying to look for the URL", book_name)
+            book_url = find_comic_url(book_name, book['number'], serie_url, proxy = proxy)
+            if book_url is None:
+                logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
+                continue
+            bedetheque_metadata = get_comic_book_metadata(book_url, proxy = proxy)
+            if bedetheque_metadata is None:
+                logger.error("Error while parsing URL %s found for %s, skipping metadata refresh for this book", book_url, book_name)
+                continue
 
         # Prepare the metadata
         processedMetadata = processMetadata.prepareKomgaBookMetadata(bedetheque_metadata, book['metadata'], book_url)

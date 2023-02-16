@@ -224,16 +224,6 @@ def get_comic_book_metadata(comic_url: str, proxy = None):
     }
     return metadata
 
-# if __name__ == "__main__":
-#     series_url = "https://www.bedetheque.com/serie-1757-BD-Lanfeust-des-Etoiles.html"  # replace with the ID of the series you're interested in
-#     comic_url = "https://www.bedetheque.com/BD-Morea-Tome-1-Le-Sang-des-Anges-4108.html"  # replace with the ID of the comic you're interested in
-
-#     # metadata = get_comic_series_metadata(series_url, proxy = proxy)
-#     # metadata=find_series_url("lanfeust") # don't work yet
-#     metadata = get_comic_book_metadata(comic_url, proxy = bedethequeApiProxies())
-
-#     print(metadata)
-
 class bedethequeApiProxies:
     '''
     Class to represent the proxy settings.
