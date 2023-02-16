@@ -107,7 +107,7 @@ def refresh_book_metadata(komga, series_id, serie_url, proxy = None):
             if serie_url is None:
                 logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
                 continue
-            book_url = find_comic_url(book_name, book['number'], serie_url, proxy = proxy)
+            book_url = find_comic_url(book_name, book['metadata']['number'], serie_url, proxy = proxy)
 
         #get the metadata for the series from bedetheque
         if book_url is None:
@@ -118,7 +118,7 @@ def refresh_book_metadata(komga, series_id, serie_url, proxy = None):
         #checking we have no issue with the metadata
         if bedetheque_metadata is None:
             logger.warning("Incorrect URL found for %s, trying to look for the URL", book_name)
-            book_url = find_comic_url(book_name, book['number'], serie_url, proxy = proxy)
+            book_url = find_comic_url(book_name, book['metadata']['number'], serie_url, proxy = proxy)
             if book_url is None:
                 logger.warning("No URL found for %s, skipping metadata refresh for this book", book_name)
                 continue

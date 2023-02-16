@@ -83,7 +83,7 @@ def get_soup(url: str, proxy = None) -> BeautifulSoup:
             try:
                 page = session.get(url, proxies=currentProxy, timeout=5)
                 break
-            except Exception():
+            except requests.exceptions.RequestException as e:
                 logger.warning("Failed to get page with the current proxy : %s, removing it and trying with the next one", currentProxy)
                 currentProxy = proxy.removeProxyAndGetNew(currentProxy)
     else:
@@ -115,13 +115,15 @@ def isValidISBN(isbn):
 
 def get_comic_series_metadata(url: str, proxy = None):
     metadata = None
+    genres = None
 
     soup = soup = get_soup(url, proxy = proxy)
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
     totalBookCount = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
     publisher = soup.find("label", string="Editeur : ").next_sibling.text
-    genres = soup.find("div", class_="bandeau-info serie").find("span", class_="style").text.split(", ")
+    if soup.find("div", class_="bandeau-info serie").find("span", class_="style"):
+        genres = soup.find("div", class_="bandeau-info serie").find("span", class_="style").text.split(", ")
     summary = soup.find("div", class_="bandeau-boutons-serie").previous_sibling.previous_sibling.text
     metadata = {
         "title": title,
@@ -236,7 +238,7 @@ class bedethequeApiProxies:
         url = "https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=$5000"
         try:
             response = requests.get(url, timeout=15)
-        except Exception():
+        except requests.exceptions.RequestException as e:
             logger.warning("Failed to get page with the proxies")
             chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
             if chooseToContinue == 'y' or chooseToContinue == 'Y':
