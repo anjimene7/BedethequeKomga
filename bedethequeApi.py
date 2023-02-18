@@ -60,6 +60,16 @@ def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str
     logger.info("Url found for tome %s", comic_name)
     return block_title["href"]
 
+def get_number_of_albums(soup:BeautifulSoup) -> int:
+    total_book_number = 0
+    if albums := soup.find("div", class_="tab_content_liste_albums"):
+        for album in albums.find_all("li"):
+            if album.find("label").text.strip().removesuffix(".").isdigit():
+                total_book_number += 1
+    else:
+        total_book_number = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
+    return total_book_number
+
 def get_soup(url: str, proxy = None) -> BeautifulSoup:
     session = requests.Session()
     session.cookies.update(
@@ -120,7 +130,7 @@ def get_comic_series_metadata(url: str, proxy = None):
     soup = soup = get_soup(url, proxy = proxy)
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
-    totalBookCount = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
+    totalBookCount = get_number_of_albums(soup)
     publisher = soup.find("label", string="Editeur : ").next_sibling.text
     if soup.find("div", class_="bandeau-info serie").find("span", class_="style"):
         genres = soup.find("div", class_="bandeau-info serie").find("span", class_="style").text.split(", ")

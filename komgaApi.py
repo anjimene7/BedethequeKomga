@@ -10,6 +10,8 @@ import requests
 class KomgaApi:
     def __init__(self, base_url, username, password):
         # store the base URL and authentication information for use in other methods
+        if base_url[-1] == '/':
+            base_url = base_url[:-1]
         self.base_url = base_url + '/api/v1'
         self.auth = (username, password)
 
