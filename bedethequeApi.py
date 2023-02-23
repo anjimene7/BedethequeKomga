@@ -25,6 +25,9 @@ def find_series_url(comic_series_name, proxy = None) -> str:
             logger.info("Url found for %s", comic_series_name)
     if not url:
         print("No serie link found for " + comic_series_name)
+        if not results:
+            logger.warning("%s not found on bedetheque", comic_series_name)
+            return None
         print("Found those series :")
         for result in results:
             if result['title'].lower().startswith(comic_series_name.lower()):
