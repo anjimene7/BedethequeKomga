@@ -26,7 +26,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 - A Komga instance with access to the admin account
 - Either Windows/Linux/MAc or alternatively Docker
-- Python installed if using Windows, Linux or Mac natively
+- Python installed if using Windows, Linux or Mac natively (version 3.10 at least)
 
 ## refresh metadata
 
