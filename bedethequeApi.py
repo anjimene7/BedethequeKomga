@@ -130,7 +130,10 @@ def get_comic_series_metadata(url: str, proxy = None):
     metadata = None
     genres = None
 
-    soup = soup = get_soup(url, proxy = proxy)
+    soup = get_soup(url, proxy = proxy)
+    if not soup.find("div", class_="bandeau-info serie"):
+        logger.error("Error reading url %s", url)
+        return None
     title = soup.find("div", class_="bandeau-info serie").h1.text.strip()
     status = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-info-sign").parent.text
     totalBookCount = get_number_of_albums(soup)
@@ -162,6 +165,9 @@ def get_comic_book_metadata(comic_url: str, proxy = None):
     couvertures = []
 
     soup = get_soup(comic_url, proxy = proxy)
+    if not soup.find("meta", attrs={'name': 'description'}):
+        logger.error("Error reading url %s", comic_url)
+        return None
     summary =  soup.find("meta", attrs={'name': 'description'})['content'].strip().replace("\n", " ")
 
     if not (content := soup.find("div", class_="tab_content_liste_albums")):
