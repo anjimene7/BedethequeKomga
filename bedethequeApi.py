@@ -94,6 +94,13 @@ def get_soup(url: str, proxy = None) -> BeautifulSoup:
         currentProxy = proxy.getNextProxy()
         while True:
             try:
+                if not currentProxy and proxy:
+                    chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
+                    if chooseToContinue.lower() == 'y':
+                        logger.warning("Continuing without a proxy")
+                    else:
+                        logger.error("Choose to not continue without a proxy. Exiting")
+                        exit()
                 page = session.get(url, proxies=currentProxy, timeout=5)
                 break
             except requests.exceptions.RequestException as e:
@@ -260,7 +267,7 @@ class bedethequeApiProxies:
         except requests.exceptions.RequestException as e:
             logger.warning("Failed to get page with the proxies")
             chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
-            if chooseToContinue == 'y' or chooseToContinue == 'Y':
+            if chooseToContinue.lower() == 'y':
                 logger.warning("Continuing without a proxy")
                 return None
             logger.error("Choose to not continue without a proxy. Exiting")
@@ -270,6 +277,8 @@ class bedethequeApiProxies:
         return [{"http": "http://" + proxy} for proxy in proxies]
 
     def getNextProxy(self):
+        if len(self.proxies)==0:
+            return None
         proxy = self.proxies[self.proxyIndex]
         self.proxyIndex += 1
         if self.proxyIndex == len(self.proxies):
@@ -279,4 +288,6 @@ class bedethequeApiProxies:
     def removeProxyAndGetNew(self, proxy):
         logger.warning("proxy %s dooesn't work, removing it and trying the next one", proxy)
         self.proxies.remove(proxy)
+        if not self.proxies[self.proxyIndex]:
+            return self.getNextProxy()
         return self.proxies[self.proxyIndex]
