@@ -257,23 +257,39 @@ class bedethequeApiProxies:
     Class to represent the proxy settings.
     '''
     def __init__(self):
-        self.proxies = self.__get_proxies()
+        self.proxies = []
         self.proxyIndex = 0
 
-    def __get_proxies(self):
+        if socks4_proxies := self.__get_socks4_proxies():
+            self.proxies.extend(socks4_proxies)
+        if socks5_proxies := self.__get_socks5_proxies():
+            self.proxies.extend(socks5_proxies)
+        if len(self.proxies) == 0:
+            chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
+            if chooseToContinue.lower() == 'y':
+                logger.warning("Continuing without a proxy")
+                self.proxies = None
+            logger.error("Choose to not continue without a proxy. Exiting")
+            exit()
+
+    def __get_socks4_proxies(self):
+        url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks4&ssl=yes&timeout=500"
+        try:
+            response = requests.get(url, timeout=15)
+        except requests.exceptions.RequestException as e:
+            logger.warning("Failed to get socks4 proxies")
+        proxies = response.text.strip().split("\r\n")
+        logger.info("socks4 proxys retrieved")
+        return [{"https": "socks4://" + proxy} for proxy in proxies]
+    
+    def __get_socks5_proxies(self):
         url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=socks5&ssl=yes&timeout=500"
         try:
             response = requests.get(url, timeout=15)
         except requests.exceptions.RequestException as e:
             logger.warning("Failed to get page with the proxies")
-            chooseToContinue = input("Failed to get page with the proxies. Do you want to try without using a proxy (risk of ban from bedetheque) (Y/N): ")
-            if chooseToContinue.lower() == 'y':
-                logger.warning("Continuing without a proxy")
-                return None
-            logger.error("Choose to not continue without a proxy. Exiting")
-            exit()
         proxies = response.text.strip().split("\r\n")
-        logger.info("proxys retrieved")
+        logger.info("socks5 proxys retrieved")
         return [{"https": "socks5://" + proxy} for proxy in proxies]
 
     def getNextProxy(self):
