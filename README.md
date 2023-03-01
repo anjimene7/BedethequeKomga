@@ -51,6 +51,8 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 The script first retrieve a list of proxies before interrogating bedetheque, to limit the chance of being blacklisted with too many calls.
 However, this method is not perfect. Please don't use it on a large library at once. Be respectful of bedetheque bandwitch ;)
 
+The proxy will, at first, eliminate the proxies that don't work or respond in time, while updating Komga. So you will have some warnings while the script eliminate theses proxies. It will speed up after removing theses proxies and only using the online & fast ones :)
+
 ## Issues & Pull Requests
 
 Welcome to submit new rules, issues, features...
