@@ -1,9 +1,10 @@
 import re
 import requests
+import time
 from bs4 import BeautifulSoup
 from log import logger
 
-def find_series_url(comic_series_name, proxy = None) -> str:
+def find_series_url(comic_series_name, proxy = None, wait_delay = None) -> str:
     url = None
     logger.info("No url in komga for serie %s, searching bedetheque by name", comic_series_name)
     if " " in comic_series_name:
@@ -11,7 +12,7 @@ def find_series_url(comic_series_name, proxy = None) -> str:
     else:
         series_to_find = remove_accents(comic_series_name)
     searchurl = f'https://www.bedetheque.com/bandes_dessinees_{series_to_find.lower()}.html'
-    soup = get_soup(searchurl, proxy = proxy)
+    soup = get_soup(searchurl, proxy = proxy, wait_delay = wait_delay)
     list_results = soup.find("div", class_="widget-magazine")
     if not list_results:
         logger.warning("%s not found on bedetheque", comic_series_name)
@@ -42,9 +43,9 @@ def find_series_url(comic_series_name, proxy = None) -> str:
                 logger.info("Url found for %s", comic_series_name)
     return url
 
-def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None) -> str:
+def find_comic_url(comic_name, comic_booknumber, serie_url, proxy = None, wait_delay = None) -> str:
     logger.info("No url in komga for tome %s, searching bedetheque by name", comic_name)
-    soup = get_soup(serie_url, proxy = proxy)
+    soup = get_soup(serie_url, proxy = proxy, wait_delay = wait_delay)
     if albums := soup.find("div", class_="tab_content_liste_albums"):
         for album in albums.find_all("li"):
             if album.find("label").text.strip().removesuffix(".").lower() == comic_booknumber:
@@ -73,7 +74,7 @@ def get_number_of_albums(soup:BeautifulSoup) -> int:
         total_book_number = soup.find("div", class_="bandeau-info serie").find("i", class_="icon-book").parent.text.strip(' albums')
     return total_book_number
 
-def get_soup(url: str, proxy = None) -> BeautifulSoup:
+def get_soup(url: str, proxy = None, wait_delay = None) -> BeautifulSoup:
     session = requests.Session()
     session.cookies.update(
         {
@@ -107,8 +108,9 @@ def get_soup(url: str, proxy = None) -> BeautifulSoup:
                 logger.warning("Failed to get page with the current proxy : %s, removing it and trying with the next one", currentProxy)
                 currentProxy = proxy.removeProxyAndGetNew(currentProxy)
     else:
-        logger.warning("Getting soup without proxy")
         page = session.get(url, timeout=5)
+        if wait_delay:
+            time.sleep(wait_delay)
     return BeautifulSoup(page.content, "html.parser")
 
 def remove_accents(comic_series_name) -> str:
@@ -133,11 +135,11 @@ def isValidISBN(isbn):
                + sum(int(ch) * 3 for ch in isbn[1::2]))
     return product % 10 == 0
 
-def get_comic_series_metadata(url: str, proxy = None):
+def get_comic_series_metadata(url: str, proxy = None, wait_delay = None):
     metadata = None
     genres = None
 
-    soup = get_soup(url, proxy = proxy)
+    soup = get_soup(url, proxy = proxy, wait_delay = wait_delay)
     if not soup.find("div", class_="bandeau-info serie"):
         logger.error("Error reading url %s", url)
         return None
@@ -159,7 +161,7 @@ def get_comic_series_metadata(url: str, proxy = None):
     }
     return metadata
 
-def get_comic_book_metadata(comic_url: str, proxy = None):
+def get_comic_book_metadata(comic_url: str, proxy = None, wait_delay = None):
     title = ''
     isbn = ''
     releaseDate = ''
@@ -171,7 +173,7 @@ def get_comic_book_metadata(comic_url: str, proxy = None):
     lettrages = []
     couvertures = []
 
-    soup = get_soup(comic_url, proxy = proxy)
+    soup = get_soup(comic_url, proxy = proxy, wait_delay = wait_delay)
     if not soup.find("meta", attrs={'name': 'description'}):
         logger.error("Error reading url %s", comic_url)
         return None

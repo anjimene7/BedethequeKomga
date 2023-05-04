@@ -11,6 +11,19 @@ class InitEnv:
         self.all_series = []
         self.status_to_update = KOMGA_STATUS
 
+        try:
+            self.series_only = SERIES_ONLY
+        except NameError:
+            self.series_only = False
+        try:
+            self.wait_delay = WAIT_DELAY
+        except NameError:
+            self.wait_delay = 7
+        try:
+            self.use_proxies = USE_PROXIES
+        except NameError:
+            self.use_proxies = True
+
         if KOMGA_LIBRARY_LIST:
             if KOMGA_COLLECTION_LIST or KOMGA_SERIE_LIST:
                 logger.error(
