@@ -80,7 +80,8 @@ def refresh_metadata():
             continue
 
         # call the refresh on the books of this serie
-        refresh_book_metadata(komga, serie_id, serie_url, proxy = proxy)
+        if not env.series_only:
+            refresh_book_metadata(komga, serie_id, serie_url, proxy = proxy)
     logger.info("Refresh successfully terminated")
 
 

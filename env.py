@@ -10,6 +10,7 @@ class InitEnv:
             KOMGA_BASE_URL, KOMGA_EMAIL, KOMGA_EMAIL_PASSWORD)
         self.all_series = []
         self.status_to_update = KOMGA_STATUS
+        self.series_only = SERIES_ONLY
 
         if KOMGA_LIBRARY_LIST:
             if KOMGA_COLLECTION_LIST or KOMGA_SERIE_LIST:

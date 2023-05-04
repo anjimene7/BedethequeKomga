@@ -11,3 +11,6 @@ KOMGA_STATUS = ['ONGOING', 'HIATUS'] # Accept ONGOING HIATUS ABANDONED and ENDED
 # Only on these 2 fields can be completed. Of both are, it will generate an error
 KOMGA_LIBRARY_LIST = [] # retrieve library value from library URL in Komga
 KOMGA_COLLECTION_LIST = [] # retrieve collection value from collection URL in Komga
+
+# Optionnal. Set this to True to refresh only series (not books of a series)
+SERIES_ONLY = False
