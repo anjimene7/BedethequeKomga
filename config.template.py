@@ -14,3 +14,7 @@ KOMGA_COLLECTION_LIST = [] # retrieve collection value from collection URL in Ko
 
 # Optionnal. Set this to True to refresh only series (not books of a series)
 SERIES_ONLY = False
+
+# Optionnal. Do not use proxies, but a delay between each request. Default:7 (seconds)
+WAIT_DELAY = 7
+USE_PROXIES = True
