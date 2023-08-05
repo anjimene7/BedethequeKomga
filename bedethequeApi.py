@@ -75,6 +75,7 @@ def get_number_of_albums(soup:BeautifulSoup) -> int:
     return total_book_number
 
 def get_soup(url: str, proxy = None, wait_delay = None) -> BeautifulSoup:
+    page = None
     session = requests.Session()
     session.cookies.update(
         {
@@ -108,9 +109,14 @@ def get_soup(url: str, proxy = None, wait_delay = None) -> BeautifulSoup:
                 logger.warning("Failed to get page with the current proxy : %s, removing it and trying with the next one", currentProxy)
                 currentProxy = proxy.removeProxyAndGetNew(currentProxy)
     else:
-        page = session.get(url, timeout=5)
+        try:
+            page = session.get(url, timeout=5)
+        except requests.exceptions.RequestException as e:
+            logger.warning("Failed to get page, continuing to the next one")
         if wait_delay:
             time.sleep(wait_delay)
+    if page is None:
+        return BeautifulSoup("", "html.parser")
     return BeautifulSoup(page.content, "html.parser")
 
 def remove_accents(comic_series_name) -> str:
@@ -129,7 +135,7 @@ def remove_accents(comic_series_name) -> str:
 # Python code to check if a given ISBN is valid or not.
 def isValidISBN(isbn):
     isbn = isbn.replace('-', '').replace(' ', '')
-    if len(isbn) != 13:
+    if len(isbn) != 13 or not isinstance(isbn, int):
         return False
     product = (sum(int(ch) for ch in isbn[::2])
                + sum(int(ch) * 3 for ch in isbn[1::2]))
@@ -293,6 +299,25 @@ class bedethequeApiProxies:
         proxies = response.text.strip().split("\r\n")
         logger.info("socks5 proxys retrieved")
         return [{"https": "socks5://" + proxy} for proxy in proxies]
+        # def __get_socks4_proxies(self):
+    #     url = "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt"
+    #     try:
+    #         response = requests.get(url, timeout=15)
+    #     except requests.exceptions.RequestException as e:
+    #         logger.warning("Failed to get page with the proxies")
+    #     proxies = response.text.strip().split("\n")
+    #     logger.info("socks4 proxys retrieved")
+    #     return [{"https": "socks4://" + proxy} for proxy in proxies]
+    # def __get_socks5_proxies(self):
+    #     url = "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt"
+    #     try:
+    #         response = requests.get(url, timeout=15)
+    #     except requests.exceptions.RequestException as e:
+    #         logger.warning("Failed to get page with the proxies")
+    #     proxies = response.text.strip().split("\n")
+    #     logger.info("socks5 proxys retrieved")
+    #     return [{"https": "socks5://" + proxy} for proxy in proxies]
+
 
     def getNextProxy(self):
         if len(self.proxies) == self.proxyIndex:

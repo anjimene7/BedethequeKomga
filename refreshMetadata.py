@@ -17,9 +17,9 @@ def refresh_metadata():
     if env.use_proxies:
         proxy = bedethequeApiProxies()
     else:
-        logger.warning("Mode No proxy requested")
+        logger.warning("Mode No proxy requested, delay between each request = %d seconds", env.wait_delay)
         if env.wait_delay<5:
-            chooseToContinue = input("Delay between each request is very low. Are you sure you want to continue (risk of ban) (Y/N): ")
+            chooseToContinue = input("Delay between each request is low. Are you sure you want to continue (risk of ban) (Y/N): ")
             if chooseToContinue.lower() == 'y':
                 logger.warning("Continuing with low delay")
             else:
@@ -27,6 +27,12 @@ def refresh_metadata():
                 exit()
 
     # Loop through each book series
+    nbr_serie_to_update = 0
+    for serie in all_series:
+        if serie['metadata']['status'] in env.status_to_update:
+            nbr_serie_to_update += 1
+    logger.info("Start updating %d series", nbr_serie_to_update)
+    nbr_serie_updated = 0
     for serie in all_series:
         serie_id = serie['id']
         if not (serie_name := serie['metadata']['title']):
@@ -35,6 +41,7 @@ def refresh_metadata():
 
         if not serie['metadata']['status'] in env.status_to_update:
             continue
+        nbr_serie_updated += 1
 
         # Get the bedetheque link if it exists
         for link in serie['metadata']['links']:
@@ -85,7 +92,7 @@ def refresh_metadata():
 
         # Update the metadata for the series on komga
         if komga.update_series_metadata(serie_id, serie_data):
-            logger.info("Successfully update series %s", serie_name)
+            logger.info("Successfully update series %d/%d -  %s", nbr_serie_updated, nbr_serie_to_update, serie_name)
         else:
             logger.warning("Failed to update series %s", serie_name)
             continue
