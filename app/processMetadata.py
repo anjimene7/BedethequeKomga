@@ -18,7 +18,7 @@ def __setStatus(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     if not komga_metadata['statusLock']:
         runningLang = ["Série en cours"]
         abandonedLang = ["Série abandonnée"]
-        endedLang = ["Série finie"]
+        endedLang = ["Série finie", "One shot"]
         suspendedLang = ['Série suspendue']
 
         status = "ONGOING"
@@ -111,7 +111,10 @@ def __setTitle(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
 
 def __setSummary(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
     if not komga_metadata['summaryLock']:
-        preparedKomgaMetadata.summary = bedetheque_metadata["summary"]
+        if komga_metadata['summary']:
+            preparedKomgaMetadata.summary = komga_metadata['summary']
+        else:
+            preparedKomgaMetadata.summary = bedetheque_metadata["summary"]
     else:
         preparedKomgaMetadata.summary = komga_metadata['summary']
 
@@ -144,6 +147,18 @@ def __setLinks(preparedKomgaMetadata, url, komga_metadata):
         preparedKomgaMetadata.links = komga_metadata['links']
 
 
+def __setTags(preparedKomgaMetadata, bedetheque_metadata, komga_metadata):
+    tags = komga_metadata['tags'].copy()
+    if not komga_metadata['tagsLock']:
+        if bedetheque_metadata["status"].lower() == "one shot":
+            tags.append('oneshot')
+        if bedetheque_metadata["collection"]:
+            tags.append(bedetheque_metadata["collection"])
+        preparedKomgaMetadata.tags = list(set(tags))
+    else:
+        preparedKomgaMetadata.tags = komga_metadata['tags']
+
+
 def prepareKomgaSeriesMetadata(bedetheque_metadata, komga_metadata, serie_url):
     # init
     preparedKomgaSeriesMetadata = seriesMetadata()
@@ -168,6 +183,8 @@ def prepareKomgaSeriesMetadata(bedetheque_metadata, komga_metadata, serie_url):
 
     # title
     __setTitle(preparedKomgaSeriesMetadata, bedetheque_metadata, komga_metadata)
+
+    __setTags(preparedKomgaSeriesMetadata, bedetheque_metadata, komga_metadata)
 
     preparedKomgaSeriesMetadata.isvalid = True
     return preparedKomgaSeriesMetadata

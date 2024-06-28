@@ -1,3 +1,4 @@
+docker-compose*
 config.py
 refreshMetadata.log
 __pycache__/
